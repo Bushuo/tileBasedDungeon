@@ -1,0 +1,46 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "GameFramework/Character.h"
+#include "DungeonCharacter.generated.h"
+
+UCLASS()
+class TILEBASEDDUNGEON_API ADungeonCharacter : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	ADungeonCharacter();
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	
+	// Called every frame
+	virtual void Tick( float DeltaSeconds ) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+
+protected:
+	/** Top down camera */
+	UPROPERTY(VisibleAnywhere, Category = camera)
+	UCameraComponent* camera_;
+	
+	/** Camera boom to position cam above character */
+	UPROPERTY(VisibleAnywhere, Category = camera)
+	USpringArmComponent* camera_boom_;
+
+	/** A decal that projects to the cursor location. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = camera, meta = (AllowPrivateAccess = "true"))
+	class UDecalComponent* cursor_to_world_;
+
+	virtual void OnClickToInteractPressed();
+	virtual void OnClickToInteractReleased();
+
+private:
+	//FVector TargetLocation;
+
+	
+};
