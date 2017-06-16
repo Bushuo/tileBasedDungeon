@@ -51,7 +51,7 @@ int Room::GetRight()
 
 int Room::GetBottom()
 {
-	return FMath::(y_, y_ + height_);
+	return FMath::Max(y_, y_ + height_);
 }
 
 
