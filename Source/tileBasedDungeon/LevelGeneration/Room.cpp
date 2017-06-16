@@ -27,6 +27,22 @@ int Room::DistanceToOther(Room other)
 		vertical = -1;
 	}
 
+	int horizontal;
+	if (GetLeft() >= other.GetRight()) {
+		horizontal = GetLeft() - other.GetRight();
+	}
+	else if (GetRight() <= other.GetLeft()) {
+		horizontal = other.GetLeft() - GetRight();
+	}
+	else {
+		horizontal = -1;
+	}
+
+	if ((vertical == -1) && (horizontal == -1)) return -1;
+	if (vertical == -1) return horizontal;
+	if (horizontal == -1) return vertical;
+	return horizontal + vertical;
+
 	//OLD IMPLEMENTATION : Simple vector distance would return a float
 	/*FVector2D start_location(x_, y_);
 	FVector2D end_location(other.x_, other.y_);
