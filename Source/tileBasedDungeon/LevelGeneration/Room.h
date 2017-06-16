@@ -16,5 +16,13 @@ public:
 	int height_;
 
 	Room(int x = 0, int y = 0, int width = 0, int height = 0);
-	float DistanceToOther(Room other);
+	/** returns the minimum length a corridor based on a grid would have to be to go from this to other  
+	* returns -1 if overlapping
+	*/
+	int DistanceToOther(Room other);
+
+	int GetTop();
+	int GetLeft();
+	int GetRight();
+	int GetBottom();
 };

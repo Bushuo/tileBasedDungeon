@@ -92,8 +92,8 @@ void ADungeonGenerator::AddRooms()
 		//TODO maybe switch x with y
 
 		// set room origin point 
-		int x = FMath::RandRange(0, (stage_width_ - width) / 2) * 2 + 1;
-		int y = FMath::RandRange(0, (stage_height_ - height) / 2) * 2 + 1;
+		int x = FMath::RandRange(1, (stage_width_ - width) / 2) * 2 + 1;
+		int y = FMath::RandRange(1, (stage_height_ - height) / 2) * 2 + 1;
 
 		Room new_room(x, y, width, height);
 

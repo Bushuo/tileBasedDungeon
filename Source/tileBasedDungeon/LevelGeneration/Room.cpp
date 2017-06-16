@@ -11,9 +11,47 @@ Room::Room(int x, int y, int width, int height)
 	height_ = height;
 }
 
-float Room::DistanceToOther(Room other)
+int Room::DistanceToOther(Room other)
 {
-	FVector2D start_location(x_, y_);
+	int vertical;
+	if (GetTop() >= other.GetBottom())
+	{
+		vertical = GetTop() - other.GetBottom();
+	}
+	else if (GetBottom() <= other.GetTop())
+	{
+		vertical = other.GetTop() - GetBottom();
+	}
+	else
+	{
+		vertical = -1;
+	}
+
+	//OLD IMPLEMENTATION : Simple vector distance would return a float
+	/*FVector2D start_location(x_, y_);
 	FVector2D end_location(other.x_, other.y_);
-	return FVector2D::Distance(start_location, end_location);
+	return FVector2D::Distance(start_location, end_location);*/
 }
+
+int Room::GetLeft()
+{
+	return FMath::Min(x_, x_ + width_);
+}
+
+int Room::GetTop()
+{
+	return FMath::Min(y_, y_ + height_);
+}
+
+
+int Room::GetRight()
+{
+	return FMath::Max(x_, x_ + width_);
+}
+
+int Room::GetBottom()
+{
+	return FMath::(y_, y_ + height_);
+}
+
+
