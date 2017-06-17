@@ -12,11 +12,12 @@ ADungeonGenerator::ADungeonGenerator()
 
 	// set default level size
 	TILE_SIZE_ = 100;
-	stage_width_ = 51;
-	stage_height_ = 101;
+	stage_width_ = 21;
+	stage_height_ = 21;
 	stage_size_ = stage_width_ * stage_height_;
-
 	stage_ = new EBlockType[stage_size_];
+
+	
 
 	num_room_tries_ = 10;
 
@@ -92,10 +93,10 @@ void ADungeonGenerator::AddRooms()
 		//TODO maybe switch x with y
 
 		// set room origin point 
-		int x = FMath::RandRange(1, (stage_width_ - width) / 2) * 2 + 1;
-		int y = FMath::RandRange(1, (stage_height_ - height) / 2) * 2 + 1;
+		 int y = FMath::RandRange(1, (stage_width_ - width) / 2) * 2 + 1;
+		 int x = FMath::RandRange(1, (stage_height_ - height) / 2) * 2 + 1;
 
-		Room new_room(x, y, width, height);
+		Room new_room(x, y, width, height);			
 
 		bool overlaps = false;
 

@@ -30,9 +30,14 @@ private:
 	/** place to store the stage's rooms */
 	std::vector<Room> rooms_;
 
-	unsigned int stage_size_; // 0 to 65,535
-	int stage_width_; // has to be odd along y-axis
-	int stage_height_; // has to be odd along x-axis
+	// 0 to 65,535
+	unsigned int stage_size_; 
+	UPROPERTY(VisibleAnywhere, Category = leveldata)
+	// has to be odd along y-axis
+	int stage_width_;
+	UPROPERTY(VisibleAnywhere, Category = leveldata)
+	// has to be odd along x-axis
+	int stage_height_; 
 
 	UPROPERTY(EditAnywhere, Category = leveldata)
 	int num_room_tries_; // numer of times a room tries to get placed
