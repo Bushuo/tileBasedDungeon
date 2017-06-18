@@ -25,7 +25,9 @@ private:
 	int TILE_SIZE_;
 
 	/** pointer to store the rectangular stage array in */
-	EBlockType* stage_; 
+	EBlockType* stage_;
+	/** pointer to store the region the position in stage is part of*/
+	int* region_;
 
 	/** place to store the stage's rooms */
 	std::vector<Room> rooms_;

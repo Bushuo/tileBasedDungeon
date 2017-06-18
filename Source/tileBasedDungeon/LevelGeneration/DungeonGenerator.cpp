@@ -12,14 +12,13 @@ ADungeonGenerator::ADungeonGenerator()
 
 	// set default level size
 	TILE_SIZE_ = 100;
-	stage_width_ = 21;
-	stage_height_ = 21;
+	stage_width_ = 101;
+	stage_height_ = 101;
 	stage_size_ = stage_width_ * stage_height_;
 	stage_ = new EBlockType[stage_size_];
+	region_ = new int[stage_size_];
 
-	
-
-	num_room_tries_ = 10;
+	num_room_tries_ = 1;
 
 	// create default subobjects for instanced static meshes
 	wall_ = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
@@ -51,7 +50,7 @@ void ADungeonGenerator::SpawnInstancedStage()
 	for (int i = 0; i < GetStageSize(); i++)
 	{
 		EBlockType current_block = stage_[i];
-		FVector current_location(i / GetStageWidth() * TILE_SIZE_, i % GetStageWidth() * TILE_SIZE_, TILE_SIZE_);
+		FVector current_location(i / GetStageWidth() * TILE_SIZE_, i % GetStageWidth() * TILE_SIZE_, 0);
 		switch (current_block)
 		{
 		case EBlockType::EFloor:
@@ -92,17 +91,21 @@ void ADungeonGenerator::AddRooms()
 		}
 		//TODO maybe switch x with y
 
-		// set room origin point 
-		 int y = FMath::RandRange(1, (stage_width_ - width) / 2) * 2 + 1;
-		 int x = FMath::RandRange(1, (stage_height_ - height) / 2) * 2 + 1;
-
-		Room new_room(x, y, width, height);			
+		// set room origin point
+		int along_width = FMath::RandRange(1, (stage_width_ - width) / 2) * 2 + 1;
+		int along_height = FMath::RandRange(1, (stage_height_ - height) / 2) * 2 + 1;
+		
+		 
+		// switched because y is width x is height
+		Room new_room(along_width, along_height, width, height);			
 
 		bool overlaps = false;
 
 		for (Room other : rooms_)
 		{ // search for overlapping rooms
-			if (new_room.DistanceToOther(other) <= 0.f) // should be the piecemeal distanceTo function //TODO TODO
+			if (new_room.DistanceToOther(other) <= 0.f 
+				|| new_room.along_height_ + new_room.height_ >= stage_height_ -1
+				|| new_room.along_width_ + new_room.width_ >= stage_width_ -1)  // check if overlapping or out of bounds
 			{
 				overlaps = true;
 				break;
@@ -111,13 +114,16 @@ void ADungeonGenerator::AddRooms()
 		if (overlaps) continue; // overlapping room! -> try to place new room
 
 		rooms_.push_back(new_room);
+		UE_LOG(LogTemp, Warning, TEXT("Added new room along_w: %d along_h: %d w: %d h: %d"),new_room.along_width_, new_room.along_height_, new_room.width_, new_room.height_);
+
 		//TODO increase region
 
-		for (int pos_x = new_room.x_; pos_x < (new_room.x_ + new_room.width_); pos_x++)
+		for (int pos_x = new_room.along_width_; pos_x < (new_room.along_width_ + new_room.width_); pos_x++)
 		{
-			for (int pos_y = new_room.y_; pos_y < (new_room.y_ + new_room.height_); pos_y++)
+			for (int pos_y = new_room.along_height_; pos_y < (new_room.along_height_ + new_room.height_); pos_y++)
 			{
 				SetBlockAt(FVector2D(pos_x, pos_y));
+				SetRegionAt(FVector2D(pos_x, pos_y));
 			}
 		}
 	}
