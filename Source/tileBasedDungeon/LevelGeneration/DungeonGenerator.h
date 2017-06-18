@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include <vector>
+#include <random>
 #include "Room.h"
 #include "DungeonGenerator.generated.h"
 
@@ -44,7 +45,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = leveldata)
 	int num_room_tries_; // numer of times a room tries to get placed
 
+	int current_region_;
 
+	std::random_device rd;
+	std::mt19937 rng;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = leveldata)
@@ -53,17 +57,32 @@ protected:
 // member functions
 ///////////////////
 private:
+
 	/** spawn InstancedStaticMesh actors for values inside the array */
 	void SpawnInstancedStage();
 
 	/** add randomly oriented rooms to the stage array */
 	void AddRooms();
 
+	/** fill the empty spaces with a maze starting at start */
+	void GrowMaze(FVector2D start);
+
+	void Carve(FVector2D position);
+
+	/** returns if position + direction can be carved out */
+	bool CanCarve(FVector2D position, FVector2D direction);
+
 	/** sets tile to type or floor
 	* @param position the position to carve out
 	* @param type the blocktype to set (if NULL will be set to floor)
 	*/
 	void SetBlockAt(FVector2D position, EBlockType type = EBlockType::EFloor);
+
+	/** sets the region of input position to input int
+	* @param position the position to set the region
+	* @param region the region to set to
+	*/
+	void SetRegionAt(FVector2D position, int region);
 
 public:	
 	// Sets default values for this actor's properties
@@ -85,5 +104,6 @@ public:
 	UFUNCTION(BlueprintPure, category = leveldata)
 	int GetStageHeight() const;
 
-
+	UFUNCTION(BlueprintPure, category = leveldata)
+	EBlockType GetTile(FVector2D position);
 };
