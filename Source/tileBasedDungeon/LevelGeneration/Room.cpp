@@ -3,12 +3,12 @@
 #include "tileBasedDungeon.h"
 #include "Room.h"
 
-Room::Room(int along_w, int along_h, int width, int height)
+Room::Room(int x, int y, int length_x, int length_y)
 {
-	along_width_ = along_w;
-	along_height_ = along_h;
-	width_ = width;
-	height_ = height;
+	along_x_ = x;
+	along_y_ = y;
+	length_x_ = length_y;
+	length_y_ = length_y;
 }
 
 int Room::DistanceToOther(Room other)
@@ -42,31 +42,26 @@ int Room::DistanceToOther(Room other)
 	if (vertical == -1) return horizontal;
 	if (horizontal == -1) return vertical;
 	return horizontal + vertical;
-
-	//OLD IMPLEMENTATION : Simple vector distance would return a float
-	/*FVector2D start_location(along_width_, along_height_);
-	FVector2D end_location(other.along_width_, other.along_height_);
-	return FVector2D::Distance(start_location, end_location);*/
 }
 
 int Room::GetLeft()
 {
-	return FMath::Min(along_width_, along_width_ + width_);
+	return FMath::Min(along_y_, along_y_ + length_y_);
 }
 
 int Room::GetTop()
 {
-	return FMath::Min(along_height_, along_height_ + height_);
+	return FMath::Min(along_x_, along_x_ + length_x_);
 }
 
 int Room::GetRight()
 {
-	return FMath::Max(along_width_, along_width_ + width_);
+	return FMath::Max(along_y_, along_y_ + length_y_);
 }
 
 int Room::GetBottom()
 {
-	return FMath::Max(along_height_, along_height_ + height_);
+	return FMath::Max(along_x_, along_x_ + length_x_);
 }
 
 
