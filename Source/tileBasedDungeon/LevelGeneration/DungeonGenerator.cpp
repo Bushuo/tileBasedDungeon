@@ -62,7 +62,7 @@ void ADungeonGenerator::BeginPlay()
 		}
 	}
 
-	ConnectRegions();
+	//ConnectRegions();
 
 	SpawnInstancedStage(); // last step
 }
@@ -240,7 +240,6 @@ void ADungeonGenerator::ConnectRegions()
 {
 	TMap<FVector2D, TSet<int>> connector_regions;
 	
-	
 	for (int x = 1; x < stage_length_along_x_ - 1; x++)
 	{ // iterate over x Axis excluding the outer walls of the stage
 		for (int y = 1; y < stage_length_along_y_ - 1; y++)
@@ -290,7 +289,6 @@ void ADungeonGenerator::ConnectRegions()
 	UE_LOG(LogTemp, Warning, TEXT("connectors size: %d"), connectors.Num());
 	UE_LOG(LogTemp, Warning, TEXT("current region: %d"), current_region_);
 
-	
 	TMap<int,int> merged;  // maps the original region index to the one it has been merged to
 	TSet<int> open_regions;  // regions that need to be merged including the last region
 	for (int i = 0; i <= current_region_; i++)
@@ -298,7 +296,7 @@ void ADungeonGenerator::ConnectRegions()
 		merged.Add(i,i);
 		open_regions.Add(i);
 	}
-	/*
+
 	while (open_regions.Num() > 1)  // we dont need to merge the last region
 	{
 		std::uniform_int_distribution<int> uni_int(0, connectors.Num());
@@ -308,29 +306,48 @@ void ADungeonGenerator::ConnectRegions()
 		CarveJunction(connector);
 		// TODO FROM HERE
 
-
 		TArray<int> regions;
-		for(int region : connector_regions[connector])
+		TArray<int> sources;
+		for (auto elem : connector_regions[connector])
 		{
-			regions.Add(merged[region]);
+			regions.Add(merged[elem]);
+			sources.Add(merged[elem]);
 		}
-		int destination = regions[0];
-		auto temp_regions = regions;
-		temp_regions.RemoveAt(0);
-		TArray<int> sources = temp_regions;
 
-		for (int i = 0; i <= current_region_; i++)
+		int dest = regions[0];
+		sources.RemoveAt[sources.Num() - 1];
+
+		for (int i = 0; i < current_region_; i++)
 		{
 			if (sources.Contains(merged[i]))
-				merged[i] = destination;
+			{
+				merged.Add(i, dest);
+			}
 		}
-		for (int i : sources)
-		{
-			open_regions.Remove(i);
-		}
-		//TODO
-	}*/
 
+		for (int i = 0; i < sources.Num(); i++)
+		{
+			open_regions.Remove(sources[i]);
+		}
+
+		// remove the merged connectors
+
+		for (auto positon : connectors)
+		{
+			if(connector - positon < 2)
+				connectors.Remove(positon);
+			TSet<int> regions;
+			for (auto region_id : connector_regions[positon])
+			{
+				regions.Add(merged[region_id]);
+			}
+
+			if (regions.Num() > 1)
+				continue;
+			// Maybe add this
+			// if (rng.oneIn(extraConnectorChance)) _addJunction(pos);
+		}
+	}
 }
 
 void ADungeonGenerator::Carve(FVector2D position)
