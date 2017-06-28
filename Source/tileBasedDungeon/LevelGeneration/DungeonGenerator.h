@@ -87,7 +87,7 @@ private:
 	bool CanCarve(FVector2D position, FVector2D direction);
 
 	/** adds a junction at specified wall position */
-	void AddJunction(FVector2D position);
+	void CarveJunction(FVector2D position);
 
 	/** sets tile to type or floor
 	* @param position the position to carve out

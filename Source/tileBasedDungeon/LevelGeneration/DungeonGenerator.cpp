@@ -245,7 +245,7 @@ void ADungeonGenerator::ConnectRegions()
 	{ // iterate over x Axis excluding the outer walls of the stage
 		for (int y = 1; y < stage_length_along_y_ - 1; y++)
 		{ // iterate over y Axis excluding the outer walls of the stage
-			TSet<int> regions; // adjacent region identifiers of current position
+			TSet<int> adjacent_regions; // adjacent region identifiers of current position
 			int default_region = -1;
 			FVector2D position(x,y);
 			if (GetTile(position) != EBlockType::EWall) 
@@ -257,30 +257,30 @@ void ADungeonGenerator::ConnectRegions()
 			int region = region_[(x + 1) * stage_length_along_y_ + y];  // region identifier of adjacent position
 			if (region != default_region)
 			{
-				regions.Add(region);
+				adjacent_regions.Add(region);
 			}
 			// DOWN
 			region = region_[(x - 1) * stage_length_along_y_ + y];
 			if (region != default_region)
 			{
-				regions.Add(region);
+				adjacent_regions.Add(region);
 			}
 			// RIGHT
 			region = region_[x * stage_length_along_y_ + y + 1];
 			if (region != default_region)
 			{
-				regions.Add(region);
+				adjacent_regions.Add(region);
 			}
 			// LEFT
 			region = region_[x * stage_length_along_y_ + y - 1];
 			if (region != default_region)
 			{
-				regions.Add(region);
+				adjacent_regions.Add(region);
 			}
 
-			if (regions.Num() < 2) // only proceed if the connector wall is adjacent to 2 or more regions
+			if (adjacent_regions.Num() < 2) // only proceed if the connector wall is adjacent to 2 or more regions
 				continue;
-			connector_regions.Add(position, regions);
+			connector_regions.Add(position, adjacent_regions);
 		}
 	}
 
@@ -292,22 +292,44 @@ void ADungeonGenerator::ConnectRegions()
 
 	
 	TMap<int,int> merged;  // maps the original region index to the one it has been merged to
-	TSet<int> open_regions;
+	TSet<int> open_regions;  // regions that need to be merged including the last region
 	for (int i = 0; i <= current_region_; i++)
-	{
+	{ // init them
 		merged.Add(i,i);
 		open_regions.Add(i);
 	}
-
-	while (open_regions.Num() > 1)
+	/*
+	while (open_regions.Num() > 1)  // we dont need to merge the last region
 	{
 		std::uniform_int_distribution<int> uni_int(0, connectors.Num());
 		auto random_element = uni_int(rng);
 		FVector2D connector = connectors[random_element];
 
-		AddJunction(connector);
+		CarveJunction(connector);
+		// TODO FROM HERE
+
+
+		TArray<int> regions;
+		for(int region : connector_regions[connector])
+		{
+			regions.Add(merged[region]);
+		}
+		int destination = regions[0];
+		auto temp_regions = regions;
+		temp_regions.RemoveAt(0);
+		TArray<int> sources = temp_regions;
+
+		for (int i = 0; i <= current_region_; i++)
+		{
+			if (sources.Contains(merged[i]))
+				merged[i] = destination;
+		}
+		for (int i : sources)
+		{
+			open_regions.Remove(i);
+		}
 		//TODO
-	}
+	}*/
 
 }
 
@@ -333,7 +355,7 @@ bool ADungeonGenerator::CanCarve(FVector2D position, FVector2D direction)
 	return (GetTile(position + direction * 2) == EBlockType::EWall);
 }
 
-void ADungeonGenerator::AddJunction(FVector2D position)
+void ADungeonGenerator::CarveJunction(FVector2D position)
 {
 	if (OneIn(4))
 	{
