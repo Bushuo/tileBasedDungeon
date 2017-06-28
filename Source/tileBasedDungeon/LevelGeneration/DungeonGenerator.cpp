@@ -12,8 +12,8 @@ ADungeonGenerator::ADungeonGenerator()
 
 	// set default level size
 	TILE_SIZE_ = 100;
-	stage_length_along_y_ = 21;
-	stage_length_along_x_ = 21;
+	stage_length_along_y_ = 51;
+	stage_length_along_x_ = 51;
 	stage_size_ = stage_length_along_y_ * stage_length_along_x_;
 	stage_ = new EBlockType[stage_size_];
 	region_ = new int[stage_size_];
@@ -311,7 +311,7 @@ void ADungeonGenerator::ConnectRegions()
 
 	while (open_regions.Num() > 1)  // we dont need to merge the last region
 	{
-		std::uniform_int_distribution<int> uni_int(0, connectors.Num());
+		std::uniform_int_distribution<int> uni_int(0, connectors.Num() - 1);
 		auto random_element = uni_int(rng);
 		FVector2D connector = connectors[random_element];
 
