@@ -12,8 +12,8 @@ ADungeonGenerator::ADungeonGenerator()
 
 	// set default level size
 	TILE_SIZE_ = 100;
-	stage_length_along_y_ = 11;
-	stage_length_along_x_ = 11;
+	stage_length_along_y_ = 21;
+	stage_length_along_x_ = 21;
 	stage_size_ = stage_length_along_y_ * stage_length_along_x_;
 	stage_ = new EBlockType[stage_size_];
 	region_ = new int[stage_size_];
@@ -62,7 +62,7 @@ void ADungeonGenerator::BeginPlay()
 		}
 	}
 
-	//ConnectRegions();
+	ConnectRegions();
 
 	SpawnInstancedStage(); // last step
 }
@@ -81,6 +81,18 @@ void ADungeonGenerator::SpawnInstancedStage()
 			floor_->AddInstance(FTransform(FVector(current_location)));
 		}
 			break;
+		case EBlockType::EDoor_Closed:
+		{ // dont add a wall
+			current_location.Z -= 50;
+			floor_->AddInstance(FTransform(FVector(current_location)));
+		}
+			break;
+		case EBlockType::EDoor_Open:
+		{ // dont add a wall
+			current_location.Z -= 50;
+			floor_->AddInstance(FTransform(FVector(current_location)));
+		}
+		break;
 		case EBlockType::EWall:
 		{ // spawn a wall mesh
 			if (wall_)
@@ -314,14 +326,14 @@ void ADungeonGenerator::ConnectRegions()
 			sources.Add(merged[elem]);
 		}
 
-		int dest = regions[0];
-		sources.RemoveAt[sources.Num() - 1];
+		int destination = regions[0];
+		sources.RemoveAt(sources.Num() - 1);
 
 		for (int i = 0; i < current_region_; i++)
 		{
 			if (sources.Contains(merged[i]))
 			{
-				merged.Add(i, dest);
+				merged.Add(i, destination);
 			}
 		}
 
@@ -332,20 +344,32 @@ void ADungeonGenerator::ConnectRegions()
 
 		// remove the merged connectors
 
+		TArray<FVector2D> to_remove;
+
 		for (auto positon : connectors)
 		{
-			if(connector - positon < 2)
-				connectors.Remove(positon);
-			TSet<int> regions;
+			// connectors shouldnt be directly beside each other
+			if (FVector2D::Distance(positon, connector) < 2) 
+			{
+				to_remove.Add(positon);
+				continue;
+			}
+			TSet<int> regions_set;
 			for (auto region_id : connector_regions[positon])
 			{
-				regions.Add(merged[region_id]);
+				regions_set.Add(merged[region_id]);
 			}
 
-			if (regions.Num() > 1)
+			if (regions_set.Num() > 1)
 				continue;
 			// Maybe add this
 			// if (rng.oneIn(extraConnectorChance)) _addJunction(pos);
+
+			to_remove.Add(positon);
+		}
+		for (auto element_to_remove : to_remove)
+		{
+			connectors.Remove(element_to_remove);
 		}
 	}
 }
