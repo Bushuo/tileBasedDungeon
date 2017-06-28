@@ -62,7 +62,7 @@ void ADungeonGenerator::BeginPlay()
 		}
 	}
 
-	ConnectRegions();
+	//ConnectRegions();
 
 	SpawnInstancedStage(); // last step
 }
@@ -240,7 +240,6 @@ void ADungeonGenerator::ConnectRegions()
 {
 	TMap<FVector2D, TSet<int>> connector_regions;
 	
-	
 	for (int x = 1; x < stage_length_along_x_ - 1; x++)
 	{ // iterate over x Axis excluding the outer walls of the stage
 		for (int y = 1; y < stage_length_along_y_ - 1; y++)
@@ -290,7 +289,6 @@ void ADungeonGenerator::ConnectRegions()
 	UE_LOG(LogTemp, Warning, TEXT("connectors size: %d"), connectors.Num());
 	UE_LOG(LogTemp, Warning, TEXT("current region: %d"), current_region_);
 
-	
 	TMap<int,int> merged;  // maps the original region index to the one it has been merged to
 	TSet<int> open_regions;
 	for (int i = 0; i <= current_region_; i++)
@@ -307,6 +305,69 @@ void ADungeonGenerator::ConnectRegions()
 
 		AddJunction(connector);
 		//TODO
+
+		TArray<int> regions;
+		TArray<int> sources;
+		for (auto elem : connector_regions[connector])
+		{
+			regions.Add(merged[elem]);
+			sources.Add(merged[elem]);
+		}
+
+		int dest = regions[0];
+		sources.RemoveAt[sources.Num() - 1];
+
+		for (int i = 0; i < current_region_; i++)
+		{
+			if (sources.Find(merged[i]) != NULL)
+			{
+				merged.Add(i, dest);
+			}
+		}
+
+		for (int i = 0; i < sources.Num(); i++)
+		{
+			open_regions.Remove(sources[i]);
+		}
+
+		// remove the merged connectors
+
+		for (auto positon : connectors)
+		{
+			if(connector - positon < 2)
+				connectors.Remove(positon);
+			TSet<int> regions;
+			for (auto region_id : connector_regions[positon])
+			{
+				regions.Add(merged[region_id]);
+			}
+
+			if (regions.Num() > 1)
+				continue;
+			// Maybe add this
+			// if (rng.oneIn(extraConnectorChance)) _addJunction(pos);
+		}
+
+		/* port this
+		
+		// Remove any connectors that aren't needed anymore.
+		connectors.removeWhere((pos) {
+		// Don't allow connectors right next to each other.
+		if (connector - pos < 2) return true;
+
+		// If the connector no long spans different regions, we don't need it.
+		var regions = connectorRegions[pos].map((region) => merged[region])
+			.toSet();
+
+		if (regions.length > 1) return false;
+
+		// This connecter isn't needed, but connect it occasionally so that the
+		// dungeon isn't singly-connected.
+		if (rng.oneIn(extraConnectorChance)) _addJunction(pos);
+
+		return true;
+		});
+		*/
 	}
 
 }
