@@ -64,6 +64,8 @@ void ADungeonGenerator::BeginPlay()
 
 	ConnectRegions();
 
+	RemoveDeadEnds();
+
 	SpawnInstancedStage(); // last step
 }
 
@@ -370,6 +372,38 @@ void ADungeonGenerator::ConnectRegions()
 		for (auto element_to_remove : to_remove)
 		{
 			connectors.Remove(element_to_remove);
+		}
+	}
+}
+
+void ADungeonGenerator::RemoveDeadEnds()
+{
+	bool done = false;
+	while (!done)
+	{
+		done = true;
+		for (int x = 1; x < stage_length_along_x_ - 1; x++)
+		{ // iterate over x Axis excluding the outer walls of the stage
+			for (int y = 1; y < stage_length_along_y_ - 1; y++)
+			{ // iterate over y Axis excluding the outer walls of the stage
+				if (GetTile(FVector2D(x, y)) == EBlockType::EWall)
+					continue;
+				// if it only has one exit, it is a dead end
+				int exits = 0;
+				if (GetTile(FVector2D(x + 1, y)) != EBlockType::EWall)
+					exits++;
+				if (GetTile(FVector2D(x - 1, y)) != EBlockType::EWall)
+					exits++;
+				if (GetTile(FVector2D(x, y + 1)) != EBlockType::EWall)
+					exits++;
+				if (GetTile(FVector2D(x, y - 1)) != EBlockType::EWall)
+					exits++;
+
+				if (exits != 1)
+					continue;
+				done = false;
+				SetBlockAt(FVector2D(x, y), EBlockType::EWall);
+			}
 		}
 	}
 }

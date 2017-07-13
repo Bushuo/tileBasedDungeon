@@ -77,6 +77,9 @@ private:
 	/** connect the regions */
 	void ConnectRegions();
 
+	/** removes the dead ends from the labyrinth corridors */
+	void RemoveDeadEnds();
+
 	/** color the different regions */
 	void DrawRegionColors();
 
