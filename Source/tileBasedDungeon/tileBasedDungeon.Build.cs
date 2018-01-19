@@ -4,7 +4,8 @@ using UnrealBuildTool;
 
 public class tileBasedDungeon : ModuleRules
 {
-	public tileBasedDungeon(TargetInfo Target)
+	//public tileBasedDungeon(TargetInfo Target) changed from 4_13 to next line
+	public tileBasedDungeon(ReadOnlyTargetRules Target) : base (Target)
 	{
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
