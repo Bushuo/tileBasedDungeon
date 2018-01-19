@@ -54,7 +54,7 @@ void ADungeonPlayerController::SetNewMoveDestination(const FVector DestLocation)
 
 void ADungeonPlayerController::OnClickToInteractPressed()
 {
-	MoveToMouseCursor();
+	//MoveToMouseCursor();
 }
 
 void ADungeonPlayerController::OnClickToInteractReleased()

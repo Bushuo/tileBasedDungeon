@@ -36,6 +36,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* cursor_to_world_;
 
+	/** Called on Forward/Backward input*/
+	void MoveStraight(float value);
+
+	/** Called on left right input */
+	void MoveSideways(float value);
+
 	virtual void OnClickToInteractPressed();
 	virtual void OnClickToInteractReleased();
 

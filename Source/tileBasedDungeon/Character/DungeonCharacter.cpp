@@ -89,9 +89,30 @@ void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputCo
 	Super::SetupPlayerInputComponent(InputComponent);
 
 	// bind callbacks for input events
-	InputComponent->BindAction(TEXT("ClickToInteract"), IE_Pressed, this, &ADungeonCharacter::OnClickToInteractPressed);
-	InputComponent->BindAction(TEXT("ClickToInteract"), IE_Released, this, &ADungeonCharacter::OnClickToInteractReleased);
+	//InputComponent->BindAction(TEXT("ClickToInteract"), IE_Pressed, this, &ADungeonCharacter::OnClickToInteractPressed);
+	//InputComponent->BindAction(TEXT("ClickToInteract"), IE_Released, this, &ADungeonCharacter::OnClickToInteractReleased);
+
+	InputComponent->BindAxis(TEXT("MoveStraight"), this, &ADungeonCharacter::MoveStraight);
+	InputComponent->BindAxis(TEXT("MoveSideways"), this, &ADungeonCharacter::MoveSideways);
 }
+
+void ADungeonCharacter::MoveStraight(float value)
+{
+	if (value != 0.0f)
+	{
+		AddMovementInput(GetActorForwardVector() , value);
+	}
+}
+
+void ADungeonCharacter::MoveSideways(float value)
+{
+	if (value != 0.0f)
+	{
+		AddMovementInput(GetActorRightVector(), value);
+	}
+}
+
+
 
 // Called when Click input happens
 void ADungeonCharacter::OnClickToInteractPressed()

@@ -29,8 +29,8 @@ ADungeonGenerator::ADungeonGenerator()
 	wall_->SetupAttachment(RootComponent);
 	floor_ = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Floor"));
 	floor_->SetupAttachment(RootComponent);
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> material_test(TEXT("MaterialInstanceConstant'/Engine/VREditor/Tutorial/UMG/Specialized/Materials/flat_white.flat_white'"));
-	floor_->SetMaterial(0, material_test.Object);
+	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> material_test(TEXT("MaterialInstanceConstant'/Engine/VREditor/Tutorial/UMG/Specialized/Materials/flat_white.flat_white'"));
+	//floor_->SetMaterial(0, material_test.Object);
 }
 
 // Called when the game starts or when spawned
