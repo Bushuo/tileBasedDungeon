@@ -75,8 +75,6 @@ void ADungeonCharacter::Tick( float DeltaTime )
 	}
 	FVector hit_location = trace_result.Location;
 	FRotator new_rotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location);
-	new_rotation.Pitch = GetMesh()->RelativeRotation.Pitch;
-	new_rotation.Roll = GetMesh()->RelativeRotation.Roll;
 	GetMesh()->SetRelativeRotation(new_rotation);
 
 	// OLD FUNCTIONALITY

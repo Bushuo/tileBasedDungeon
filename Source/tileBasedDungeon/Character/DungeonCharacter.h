@@ -24,6 +24,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 protected:
+	/** the characters controller */
+	APlayerController* controller_;
+
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, Category = camera)
 	UCameraComponent* camera_;
