@@ -18,7 +18,7 @@ ADungeonCharacter::ADungeonCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
@@ -26,7 +26,6 @@ ADungeonCharacter::ADungeonCharacter()
 	camera_boom_ = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	camera_boom_->SetupAttachment(RootComponent);
 	camera_boom_->bAbsoluteRotation = true; // Don't want arm to rotate when character does
-	camera_boom_->TargetArmLength = 800.f;
 	camera_boom_->SetRelativeRotation(FRotator(-40.f,0.f,0.f));
 	camera_boom_->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 
@@ -100,7 +99,7 @@ void ADungeonCharacter::MoveStraight(float value)
 {
 	if (value != 0.0f)
 	{
-		AddMovementInput(GetActorForwardVector() , value);
+		AddMovementInput(FVector(90.f,.0f,.0f), value);
 	}
 }
 
@@ -108,7 +107,7 @@ void ADungeonCharacter::MoveSideways(float value)
 {
 	if (value != 0.0f)
 	{
-		AddMovementInput(GetActorRightVector(), value);
+		AddMovementInput(FVector(.0f, 90.f, .0f), value);
 	}
 }
 
