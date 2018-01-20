@@ -15,9 +15,13 @@ ADungeonCharacter::ADungeonCharacter()
 
 	controller_ = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
+	// Don't rotate character to camera direction
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
@@ -32,6 +36,17 @@ ADungeonCharacter::ADungeonCharacter()
 	camera_ = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
 	camera_->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// Create a decal in the world to show the cursor's location
+	cursor_to_world_ = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
+	cursor_to_world_->SetupAttachment(RootComponent);
+	static ConstructorHelpers::FObjectFinder<UMaterial> decal_material_asset(TEXT("Material'/Game/Materials/M_CursorDecal.M_CursorDecal'"));
+	if (decal_material_asset.Succeeded())
+	{
+		cursor_to_world_->SetDecalMaterial(decal_material_asset.Object);
+	}
+	cursor_to_world_->DecalSize = FVector(16.0f, 32.0f, 32.0f);
+	cursor_to_world_->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
 }
 
 // Called when the game starts or when spawned
@@ -47,16 +62,42 @@ void ADungeonCharacter::Tick( float DeltaTime )
 
 	FHitResult trace_result(ForceInit);
 	controller_->GetHitResultUnderCursor(ECC_Visibility, false, trace_result);
+	//Set cursor location every tick
+	if (cursor_to_world_ != nullptr)
+	{
+		if (controller_)
+		{
+			FVector cursor_forward_vec = trace_result.ImpactNormal;
+			FRotator cursor_rot = cursor_forward_vec.Rotation();
+			cursor_to_world_->SetWorldLocation(trace_result.Location);
+			cursor_to_world_->SetWorldRotation(cursor_rot);
+		}
+	}
 	FVector hit_location = trace_result.Location;
-	float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
-	GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
+	FRotator new_rotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location);
+	new_rotation.Pitch = GetMesh()->RelativeRotation.Pitch;
+	new_rotation.Roll = GetMesh()->RelativeRotation.Roll;
+	GetMesh()->SetRelativeRotation(new_rotation);
 
+	// OLD FUNCTIONALITY
+	// Move the player to the location clicked if there is a change of location
+	/*if (FVector::Dist(TargetLocation, GetActorLocation()) > 2.5f)
+	{
+		FVector Diff = TargetLocation - GetActorLocation();
+		Diff.Normalize();
+
+		GetMovementComponent()->AddInputVector(Diff);
+	}*/
 }
 
 // Called to bind functionality to input
 void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
+
+	// bind callbacks for input events
+	//InputComponent->BindAction(TEXT("ClickToInteract"), IE_Pressed, this, &ADungeonCharacter::OnClickToInteractPressed);
+	//InputComponent->BindAction(TEXT("ClickToInteract"), IE_Released, this, &ADungeonCharacter::OnClickToInteractReleased);
 
 	InputComponent->BindAxis(TEXT("MoveStraight"), this, &ADungeonCharacter::MoveStraight);
 	InputComponent->BindAxis(TEXT("MoveSideways"), this, &ADungeonCharacter::MoveSideways);
@@ -83,6 +124,45 @@ void ADungeonCharacter::MoveSideways(float value)
 // Called when Click input happens
 void ADungeonCharacter::OnClickToInteractPressed()
 {
+
+	// OLD INPUT FUNCTION
+	/*FVector WorldLocation;
+	FVector WorldDirection;
+
+	// get playercontroller
+	APlayerController* player_controller = Cast<APlayerController>(GetController());
+	if (player_controller)
+	{
+		if (player_controller->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
+		{
+			//where the trace should stop
+			FVector TraceEndLocation = Camera->GetForwardVector() + 12000 * WorldDirection;
+
+			// setup trace parameters
+			FCollisionQueryParams TraceParams(FName(TEXT("CameraTrace")), true, this);
+			TraceParams.bTraceAsyncScene = true;
+			TraceParams.bReturnPhysicalMaterial = true;
+			TraceParams.AddIgnoredActor(this);
+			TraceParams.AddIgnoredActor(GetOwner());
+
+			FHitResult Hit(ForceInit);
+
+			// trace
+			if (GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEndLocation, ECC_Camera, TraceParams))
+			{
+				TargetLocation = Hit.ImpactPoint;
+				// set to actors Z that it doesnt get stuck in terrain
+				TargetLocation.Z = GetActorLocation().Z;
+
+
+				FRotator NewRotation = FRotationMatrix::MakeFromX(TargetLocation - GetActorLocation()).Rotator();
+
+				NewRotation.Yaw -= 90.f;
+				GetMesh()->SetRelativeRotation(NewRotation);
+			}
+		}
+
+	}*/
 }
 
 void ADungeonCharacter::OnClickToInteractReleased()
