@@ -32,6 +32,8 @@ ADungeonCharacter::ADungeonCharacter()
 	camera_ = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
 	camera_->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	health_ = 1.0f;
 }
 
 // Called when the game starts or when spawned

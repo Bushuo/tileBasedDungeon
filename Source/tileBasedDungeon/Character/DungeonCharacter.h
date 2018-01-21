@@ -35,6 +35,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = camera)
 	USpringArmComponent* camera_boom_;
 
+	/** The base characters health */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float health_;
+
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* cursor_to_world_;
