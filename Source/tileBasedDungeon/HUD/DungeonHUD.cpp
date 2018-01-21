@@ -6,7 +6,8 @@
 ADungeonHUD::ADungeonHUD()
 {
 	controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	ConstructorHelpers::FObjectFinder<UMaterialInterface> material(TEXT("Material'/Game/Materials/M_CursorDecal.M_CursorDecal'"));
+	//ConstructorHelpers::FObjectFinder<UMaterialInterface> material(TEXT("Material'/Game/Materials/M_CursorDecal.M_CursorDecal'"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> material(TEXT("Material'/Game/Materials/M_Cursor.M_Cursor'"));
 	cursor_material = (UMaterialInterface*)material.Object;
 }
 

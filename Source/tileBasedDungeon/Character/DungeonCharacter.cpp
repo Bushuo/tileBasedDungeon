@@ -50,7 +50,6 @@ void ADungeonCharacter::Tick( float DeltaTime )
 	FVector hit_location = trace_result.Location;
 	float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
 	GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
-
 }
 
 // Called to bind functionality to input
