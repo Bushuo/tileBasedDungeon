@@ -7,7 +7,7 @@
 
 AtileBasedDungeonGameMode::AtileBasedDungeonGameMode(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	ConstructorHelpers::FObjectFinder<UBlueprint> PlayerBlueprint(TEXT("Blueprint'/Game/Characters/TestCharacter/TestCharacter.TestCharacter'"));
+	ConstructorHelpers::FObjectFinder<UBlueprint> PlayerBlueprint(TEXT("Blueprint'/Game/Blueprints/TestCharacter.TestCharacter'"));
 	if (PlayerBlueprint.Object)
 	{
 		DefaultPawnClass = Cast<UClass>(PlayerBlueprint.Object->GeneratedClass);

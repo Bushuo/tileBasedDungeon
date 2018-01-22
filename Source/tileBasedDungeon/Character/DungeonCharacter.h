@@ -39,9 +39,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float health_;
 
-	/** A decal that projects to the cursor location. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = camera, meta = (AllowPrivateAccess = "true"))
-	class UDecalComponent* cursor_to_world_;
+	/** Tells wether the character is casting */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool casting1h_;
 
 	/** Called on Forward/Backward input*/
 	void MoveStraight(float value);
