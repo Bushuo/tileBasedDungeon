@@ -39,6 +39,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float health_;
 
+	/** The healthvalue a character restores each second */
+	UPROPERTY(VisibleAnywhere)
+	float health_regeneration_;
+
 	/** Tells wether the character is casting */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool casting1h_;
@@ -46,14 +50,22 @@ protected:
 	/** Called on Forward/Backward input*/
 	void MoveStraight(float value);
 
-	/** Called on left right input */
+	/** Called on left/right input */
 	void MoveSideways(float value);
 
-	virtual void OnClickToInteractPressed();
-	virtual void OnClickToInteractReleased();
+	/** Called on basic attack input */
+	virtual void OnBasicAttackPressed();
+	/** Called on special attack input */
+	virtual void OnSpecialAttackPressed();
+
+	/** Called on ability1 input */
+	virtual void OnAbility1Pressed();
+	/** Called on ability2 input */
+	virtual void OnAbility2Pressed();
+	/** Called on ability3 input */
+	virtual void OnAbility3Pressed();
+	/** Called on ability4 input */
+	virtual void OnAbility4Pressed();
 
 private:
-	//FVector TargetLocation;
-
-	
 };

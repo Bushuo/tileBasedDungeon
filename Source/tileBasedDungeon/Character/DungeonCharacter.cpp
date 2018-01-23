@@ -33,7 +33,7 @@ ADungeonCharacter::ADungeonCharacter()
 	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
 	camera_->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	health_ = 1.0f;
+	health_ = .4f;
 }
 
 // Called when the game starts or when spawned
@@ -52,6 +52,15 @@ void ADungeonCharacter::Tick( float DeltaTime )
 	FVector hit_location = trace_result.Location;
 	float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
 	GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
+
+	if (health_ < 1.f)
+	{
+		health_ += 0.01 * DeltaTime;
+	}
+	if (health_ > 1.f)
+	{
+		health_ = 1.f;
+	}
 }
 
 // Called to bind functionality to input
@@ -61,8 +70,17 @@ void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputCo
 
 	InputComponent->BindAxis(TEXT("MoveStraight"), this, &ADungeonCharacter::MoveStraight);
 	InputComponent->BindAxis(TEXT("MoveSideways"), this, &ADungeonCharacter::MoveSideways);
+
+	InputComponent->BindAction(TEXT("BasicAttack"), IE_Pressed, this, &ADungeonCharacter::OnBasicAttackPressed);
+	InputComponent->BindAction(TEXT("SpecialAttack"), IE_Pressed, this, &ADungeonCharacter::OnSpecialAttackPressed);
+
+	InputComponent->BindAction(TEXT("Ability1"), IE_Pressed, this, &ADungeonCharacter::OnAbility1Pressed);
+	InputComponent->BindAction(TEXT("Ability2"), IE_Pressed, this, &ADungeonCharacter::OnAbility2Pressed);
+	InputComponent->BindAction(TEXT("Ability3"), IE_Pressed, this, &ADungeonCharacter::OnAbility3Pressed);
+	InputComponent->BindAction(TEXT("Ability4"), IE_Pressed, this, &ADungeonCharacter::OnAbility4Pressed);
 }
 
+// called when forward movement input happens
 void ADungeonCharacter::MoveStraight(float value)
 {
 	if (value != 0.0f)
@@ -71,6 +89,7 @@ void ADungeonCharacter::MoveStraight(float value)
 	}
 }
 
+// called when sideways movement input happens
 void ADungeonCharacter::MoveSideways(float value)
 {
 	if (value != 0.0f)
@@ -79,14 +98,38 @@ void ADungeonCharacter::MoveSideways(float value)
 	}
 }
 
-
-
-// Called when Click input happens
-void ADungeonCharacter::OnClickToInteractPressed()
+// called for basic attack
+void ADungeonCharacter::OnBasicAttackPressed()
 {
+
 }
 
-void ADungeonCharacter::OnClickToInteractReleased()
+// called for special attack
+void ADungeonCharacter::OnSpecialAttackPressed()
 {
+
 }
 
+// called for ability 1
+void ADungeonCharacter::OnAbility1Pressed()
+{
+
+}
+
+// called for ability 2
+void ADungeonCharacter::OnAbility2Pressed()
+{
+
+}
+
+// called for ability 3
+void ADungeonCharacter::OnAbility3Pressed()
+{
+
+}
+
+// called for ability 4
+void ADungeonCharacter::OnAbility4Pressed()
+{
+
+}
