@@ -47,6 +47,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool casting1h_;
 
+	/** Tells wether the character is basic attacking */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool basicattacking1h_;
+
 	/** Called on Forward/Backward input*/
 	void MoveStraight(float value);
 
@@ -68,4 +72,6 @@ protected:
 	virtual void OnAbility4Pressed();
 
 private:
+	FTimerHandle UnusedHandle;
+	void ResetBasicAttack();
 };
