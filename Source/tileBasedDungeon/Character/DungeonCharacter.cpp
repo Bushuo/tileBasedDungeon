@@ -36,7 +36,7 @@ ADungeonCharacter::ADungeonCharacter()
 	health_ = .4f;
 
 	casting1h_ = false;
-	basicattacking1h_ = false;
+	basic_attacking1h_ = false;
 }
 
 // Called when the game starts or when spawned
@@ -104,13 +104,16 @@ void ADungeonCharacter::MoveSideways(float value)
 // called for basic attack
 void ADungeonCharacter::OnBasicAttackPressed()
 {
-	basicattacking1h_ = true;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &ADungeonCharacter::ResetBasicAttack, 2.f, false);
+	if (!basic_attacking1h_ && !casting1h_)
+	{
+		basic_attacking1h_ = true;
+		//GetWorldTimerManager().SetTimer(UnusedHandle, this, &ADungeonCharacter::ResetBasicAttack, 2.f, false);
+	}
 }
 
 void ADungeonCharacter::ResetBasicAttack()
 {
-	basicattacking1h_ = false;
+	basic_attacking1h_ = false;
 }
 
 // called for special attack
@@ -141,4 +144,22 @@ void ADungeonCharacter::OnAbility3Pressed()
 void ADungeonCharacter::OnAbility4Pressed()
 {
 
+}
+
+// getter
+bool ADungeonCharacter::GetCasting1H() const
+{
+	return casting1h_;
+}
+
+// getter
+bool ADungeonCharacter::GetBasicAttacking1H() const
+{
+	return basic_attacking1h_;
+}
+
+// getter
+float ADungeonCharacter::GetHealth() const
+{
+	return health_;
 }

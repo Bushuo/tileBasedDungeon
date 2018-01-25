@@ -23,6 +23,17 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
+	/** Blueprint Getter of casting1h */
+	UFUNCTION(BlueprintCallable)
+	bool GetCasting1H() const;
+
+	/** Blueprint Getter of basic_attacking1h */
+	UFUNCTION(BlueprintCallable)
+	bool GetBasicAttacking1H() const;
+
+	/** Blueprint Getter of health */
+	UFUNCTION(BlueprintCallable)
+	float GetHealth() const;
 protected:
 	/** the characters controller */
 	APlayerController* controller_;
@@ -36,7 +47,7 @@ protected:
 	USpringArmComponent* camera_boom_;
 
 	/** The base characters health */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere)
 	float health_;
 
 	/** The healthvalue a character restores each second */
@@ -44,12 +55,12 @@ protected:
 	float health_regeneration_;
 
 	/** Tells wether the character is casting */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere)
 	bool casting1h_;
 
 	/** Tells wether the character is basic attacking */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool basicattacking1h_;
+	UPROPERTY(VisibleAnywhere)
+	bool basic_attacking1h_;
 
 	/** Called on Forward/Backward input*/
 	void MoveStraight(float value);
