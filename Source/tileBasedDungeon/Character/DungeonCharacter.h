@@ -23,44 +23,32 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
-	/** Blueprint Getter of casting1h */
-	UFUNCTION(BlueprintCallable)
-	bool GetCasting1H() const;
 
-	/** Blueprint Getter of basic_attacking1h */
-	UFUNCTION(BlueprintCallable)
-	bool GetBasicAttacking1H() const;
-
-	/** Blueprint Getter of health */
-	UFUNCTION(BlueprintCallable)
-	float GetHealth() const;
 protected:
 	/** the characters controller */
 	APlayerController* controller_;
 
 	/** Top down camera */
-	UPROPERTY(VisibleAnywhere, Category = camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* camera_;
-	
-	/** Camera boom to position cam above character */
-	UPROPERTY(VisibleAnywhere, Category = camera)
-	USpringArmComponent* camera_boom_;
 
 	/** The base characters health */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	float health_;
 
 	/** The healthvalue a character restores each second */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	float health_regeneration_;
 
 	/** Tells wether the character is casting */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	bool casting1h_;
 
 	/** Tells wether the character is basic attacking */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	bool basic_attacking1h_;
+
+	//FUNCTIONS//
 
 	/** Called on Forward/Backward input*/
 	void MoveStraight(float value);

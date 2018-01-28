@@ -13,6 +13,11 @@ ADungeonCharacter::ADungeonCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	if (!RootComponent)
+	{
+		RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterBase"));
+	}
+
 	controller_ = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 	// Configure character movement
@@ -22,16 +27,21 @@ ADungeonCharacter::ADungeonCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
 	// Create camera_boom_ to Attach the Camera to
-	camera_boom_ = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	camera_boom_->SetupAttachment(RootComponent);
+	USpringArmComponent* camera_boom_ = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	camera_boom_->bAbsoluteRotation = true; // Don't want arm to rotate when character does
-	camera_boom_->SetRelativeRotation(FRotator(-40.f,0.f,0.f));
+	camera_boom_->bUsePawnControlRotation = false;
+	camera_boom_->bEnableCameraRotationLag = false;
+	camera_boom_->TargetArmLength = 700.f;
 	camera_boom_->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
+	camera_boom_->SetupAttachment(RootComponent);
+	camera_boom_->SetWorldRotation(FRotator(-40.f, 0.f, 0.f));
 
 	// Attach Camera to camera_boom_
 	camera_ = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
+	
 	camera_->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	camera_->SetWorldRotation(FRotator(-40.f, 0.f, 0.f));
+	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
 
 	health_ = .4f;
 
@@ -144,22 +154,4 @@ void ADungeonCharacter::OnAbility3Pressed()
 void ADungeonCharacter::OnAbility4Pressed()
 {
 
-}
-
-// getter
-bool ADungeonCharacter::GetCasting1H() const
-{
-	return casting1h_;
-}
-
-// getter
-bool ADungeonCharacter::GetBasicAttacking1H() const
-{
-	return basic_attacking1h_;
-}
-
-// getter
-float ADungeonCharacter::GetHealth() const
-{
-	return health_;
 }
