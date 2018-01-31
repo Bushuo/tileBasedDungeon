@@ -3,4 +3,5 @@
 #pragma once
 
 #include "Engine.h"
+#include "DungeonStatics.h"
 
