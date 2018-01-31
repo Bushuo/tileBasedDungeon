@@ -5,6 +5,24 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "DungeonCharacter.h"
 
+void FDungeonCharacterInput::Sanitize()
+{
+	MovementInput = RawMovementInput.ClampAxes(-1.f, 1.f);
+	MovementInput = MovementInput.GetSafeNormal();
+
+	RawMovementInput.Set(0.f, 0.f);
+}
+
+void FDungeonCharacterInput::MoveStraight(float axis_value)
+{
+	RawMovementInput.X += axis_value;
+}
+
+void FDungeonCharacterInput::MoveSideways(float axis_value)
+{
+	RawMovementInput.Y += axis_value;
+}
+
 
 // Sets default values
 ADungeonCharacter::ADungeonCharacter()
@@ -40,10 +58,10 @@ ADungeonCharacter::ADungeonCharacter()
 	camera_ = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	
 	camera_->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-	camera_->SetWorldRotation(FRotator(-40.f, 0.f, 0.f));
 	camera_->SetupAttachment(camera_boom_, USpringArmComponent::SocketName);
 
 	health_ = .4f;
+	health_regeneration_ = .01f;
 
 	casting1h_ = false;
 	basic_attacking1h_ = false;
@@ -59,20 +77,37 @@ void ADungeonCharacter::BeginPlay()
 void ADungeonCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+	
+	// sanitize the movement input
+	CharacterInput.Sanitize();
 
-	FHitResult trace_result(ForceInit);
-	controller_->GetHitResultUnderCursor(ECC_Visibility, false, trace_result);
-	FVector hit_location = trace_result.Location;
-	float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
-	GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
-
-	if (health_ < 1.f)
+	// move the tank
 	{
-		health_ += 0.01 * DeltaTime;
+		FVector desired_movement_direction = FVector(CharacterInput.MovementInput.X, CharacterInput.MovementInput.Y, 0.f);
+		if (!desired_movement_direction.IsNearlyZero())
+		{
+			AddMovementInput(desired_movement_direction);
+		}
 	}
-	if (health_ > 1.f)
+
+	// Turn char to mouse location
 	{
-		health_ = 1.f;
+		FHitResult trace_result(ForceInit);
+		controller_->GetHitResultUnderCursor(ECC_Visibility, false, trace_result);
+		FVector hit_location = trace_result.Location;
+		float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
+		GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
+	}
+	// Regenerate health
+	{
+		if (health_ < 1.f)
+		{
+			health_ += health_regeneration_ * DeltaTime;
+		}
+		if (health_ > 1.f)
+		{
+			health_ = 1.f;
+		}
 	}
 }
 
@@ -94,21 +129,19 @@ void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputCo
 }
 
 // called when forward movement input happens
-void ADungeonCharacter::MoveStraight(float value)
+void ADungeonCharacter::MoveStraight(float axis_value)
 {
-	if (value != 0.0f)
-	{
-		AddMovementInput(FVector(90.f,.0f,.0f), value);
-	}
+	CharacterInput.MoveStraight(axis_value);
 }
 
 // called when sideways movement input happens
-void ADungeonCharacter::MoveSideways(float value)
+void ADungeonCharacter::MoveSideways(float axis_value)
 {
-	if (value != 0.0f)
-	{
-		AddMovementInput(FVector(.0f, 90.f, .0f), value);
-	}
+	//if (value != 0.0f)
+	//{
+	//	AddMovementInput(FVector(.0f, 90.f, .0f), value);
+	//}
+	CharacterInput.MoveSideways(axis_value);
 }
 
 // called for basic attack
@@ -117,7 +150,7 @@ void ADungeonCharacter::OnBasicAttackPressed()
 	if (!basic_attacking1h_ && !casting1h_)
 	{
 		basic_attacking1h_ = true;
-		//GetWorldTimerManager().SetTimer(UnusedHandle, this, &ADungeonCharacter::ResetBasicAttack, 2.f, false);
+		GetWorldTimerManager().SetTimer(UnusedHandle, this, &ADungeonCharacter::ResetBasicAttack, 2.f, false);
 	}
 }
 

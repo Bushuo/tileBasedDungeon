@@ -5,6 +5,25 @@
 #include "GameFramework/Character.h"
 #include "DungeonCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FDungeonCharacterInput
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InputCharacter")
+	FVector2D MovementInput;
+
+	void Sanitize();
+	void MoveStraight(float axis_value);
+	void MoveSideways(float axis_value);
+
+private:
+	// raw data. Game code should not see this.
+	FVector2D RawMovementInput;
+};
+
+
 UCLASS()
 class TILEBASEDDUNGEON_API ADungeonCharacter : public ACharacter
 {
@@ -48,13 +67,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	bool basic_attacking1h_;
 
+	/** input structure */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	FDungeonCharacterInput CharacterInput;
+
 	//FUNCTIONS//
 
 	/** Called on Forward/Backward input*/
-	void MoveStraight(float value);
+	void MoveStraight(float axis_value);
 
 	/** Called on left/right input */
-	void MoveSideways(float value);
+	void MoveSideways(float axis_value);
 
 	/** Called on basic attack input */
 	virtual void OnBasicAttackPressed();
