@@ -3,6 +3,7 @@
 
 #include "tileBasedDungeon.h"
 #include "DungeonGenerator.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ADungeonGenerator::ADungeonGenerator()
@@ -134,21 +135,21 @@ void ADungeonGenerator::AddRooms()
 		
 		Room new_room(room_x, room_y, length_x, length_y);
 
-		bool overlaps = false;
+		bool b_overlaps = false;
 
 		if (((new_room.along_x_ + new_room.length_x_) >= (stage_length_along_x_ - 1)) ||
 			((new_room.along_y_ + new_room.length_y_) >= (stage_length_along_y_ - 1))) // check if out of bounds
-			overlaps = true;
+			b_overlaps = true;
 
 		for (Room other : rooms_)
 		{ // search for overlapping rooms
 			if (new_room.DistanceToOther(other) <= 0.f)  // check if overlapping
 			{
-				overlaps = true;
+				b_overlaps = true;
 				break;
 			}
 		}
-		if (overlaps) 
+		if (b_overlaps) 
 			continue; // overlapping room! -> try to place new room
 
 		rooms_.push_back(new_room);
@@ -378,10 +379,10 @@ void ADungeonGenerator::ConnectRegions()
 
 void ADungeonGenerator::RemoveDeadEnds()
 {
-	bool done = false;
-	while (!done)
+	bool b_done = false;
+	while (!b_done)
 	{
-		done = true;
+		b_done = true;
 		for (int x = 1; x < stage_length_along_x_ - 1; x++)
 		{ // iterate over x Axis excluding the outer walls of the stage
 			for (int y = 1; y < stage_length_along_y_ - 1; y++)
@@ -401,7 +402,7 @@ void ADungeonGenerator::RemoveDeadEnds()
 
 				if (exits != 1)
 					continue;
-				done = false;
+				b_done = false;
 				SetBlockAt(FVector2D(x, y), EBlockType::EWall);
 			}
 		}
