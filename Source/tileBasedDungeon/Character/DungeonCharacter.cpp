@@ -5,6 +5,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "DungeonCharacter.h"
 
+// insert in weapon
+#include "Projectiles/Projectile.h"
+
 void FDungeonCharacterInput::Sanitize()
 {
 	MovementInput = RawMovementInput.ClampAxes(-1.f, 1.f);
@@ -23,6 +26,14 @@ void FDungeonCharacterInput::MoveSideways(float axis_value)
 	RawMovementInput.Y += axis_value;
 }
 
+void FDungeonCharacterInput::BasicAttack(bool b_pressed)
+{
+	b_basic_attacking1h_ = b_pressed;
+}
+
+void FDungeonCharacterInput::SpecialAttack(bool b_pressed)
+{
+}
 
 // Sets default values
 ADungeonCharacter::ADungeonCharacter()
@@ -36,7 +47,8 @@ ADungeonCharacter::ADungeonCharacter()
 		RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterBase"));
 	}
 
-	controller_ = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	player_id_ = 0;
+	controller_ = UGameplayStatics::GetPlayerController(GetWorld(), player_id_);
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -63,8 +75,10 @@ ADungeonCharacter::ADungeonCharacter()
 	health_ = .4f;
 	health_regeneration_ = .01f;
 
-	casting1h_ = false;
-	basic_attacking1h_ = false;
+	movement_speed_ = 400.f;
+	this->GetCharacterMovement()->MaxWalkSpeed = movement_speed_;
+
+	basic_attack_cooldown_ = 2.f;
 }
 
 // Called when the game starts or when spawned
@@ -79,11 +93,11 @@ void ADungeonCharacter::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );
 	
 	// sanitize the movement input
-	CharacterInput.Sanitize();
+	character_input_.Sanitize();
 
 	// move the tank
 	{
-		FVector desired_movement_direction = FVector(CharacterInput.MovementInput.X, CharacterInput.MovementInput.Y, 0.f);
+		FVector desired_movement_direction = FVector(character_input_.MovementInput.X, character_input_.MovementInput.Y, 0.f);
 		if (!desired_movement_direction.IsNearlyZero())
 		{
 			AddMovementInput(desired_movement_direction);
@@ -95,8 +109,9 @@ void ADungeonCharacter::Tick( float DeltaTime )
 		FHitResult trace_result(ForceInit);
 		controller_->GetHitResultUnderCursor(ECC_Visibility, false, trace_result);
 		FVector hit_location = trace_result.Location;
-		float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Yaw;
-		GetMesh()->SetWorldRotation(FRotator(.0f, new_yaw - 90.f, .0f));
+		float new_yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), hit_location).Add(0.f,-90.f,0.f).Yaw;
+		current_yaw_ = new_yaw + 90.f;
+		GetCapsuleComponent()->SetWorldRotation(FRotator(.0f, new_yaw, .0f));
 	}
 	// Regenerate health
 	{
@@ -109,6 +124,26 @@ void ADungeonCharacter::Tick( float DeltaTime )
 			health_ = 1.f;
 		}
 	}
+	// Handle input - code to put in the weapons
+	{
+		const FDungeonCharacterInput& current = this->GetCurrectInput();
+		if (current.b_basic_attacking1h_)
+		{
+			if (UWorld* world = GetWorld())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("spawn a basic attack"));
+				
+				if (AProjectile* new_projectile = Cast<AProjectile>(world->SpawnActor(BasicAttackProjectile)))
+				{
+					FVector location = GetMesh()->GetSocketLocation("RightHand");
+					FRotator rotation = FRotator(0.f, this->GetCharacterYaw(), 0.f);
+					new_projectile->SetActorLocation(location);
+					new_projectile->SetActorRotation(rotation);
+				}
+			}
+		}
+	}
+
 }
 
 // Called to bind functionality to input
@@ -120,71 +155,90 @@ void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputCo
 	InputComponent->BindAxis(TEXT("MoveSideways"), this, &ADungeonCharacter::MoveSideways);
 
 	InputComponent->BindAction(TEXT("BasicAttack"), IE_Pressed, this, &ADungeonCharacter::OnBasicAttackPressed);
+	InputComponent->BindAction(TEXT("BasicAttack"), IE_Released, this, &ADungeonCharacter::OnBasicAttackReleased);
 	InputComponent->BindAction(TEXT("SpecialAttack"), IE_Pressed, this, &ADungeonCharacter::OnSpecialAttackPressed);
+	InputComponent->BindAction(TEXT("SpecialAttack"), IE_Released, this, &ADungeonCharacter::OnSpecialAttackReleased);
 
 	InputComponent->BindAction(TEXT("Ability1"), IE_Pressed, this, &ADungeonCharacter::OnAbility1Pressed);
+	InputComponent->BindAction(TEXT("Ability1"), IE_Released, this, &ADungeonCharacter::OnAbility1Released);
 	InputComponent->BindAction(TEXT("Ability2"), IE_Pressed, this, &ADungeonCharacter::OnAbility2Pressed);
+	InputComponent->BindAction(TEXT("Ability2"), IE_Released, this, &ADungeonCharacter::OnAbility2Released);
 	InputComponent->BindAction(TEXT("Ability3"), IE_Pressed, this, &ADungeonCharacter::OnAbility3Pressed);
+	InputComponent->BindAction(TEXT("Ability3"), IE_Released, this, &ADungeonCharacter::OnAbility3Released);
 	InputComponent->BindAction(TEXT("Ability4"), IE_Pressed, this, &ADungeonCharacter::OnAbility4Pressed);
+	InputComponent->BindAction(TEXT("Ability4"), IE_Released, this, &ADungeonCharacter::OnAbility4Released);
 }
 
 // called when forward movement input happens
 void ADungeonCharacter::MoveStraight(float axis_value)
 {
-	CharacterInput.MoveStraight(axis_value);
+	character_input_.MoveStraight(axis_value);
 }
 
 // called when sideways movement input happens
 void ADungeonCharacter::MoveSideways(float axis_value)
 {
-	//if (value != 0.0f)
-	//{
-	//	AddMovementInput(FVector(.0f, 90.f, .0f), value);
-	//}
-	CharacterInput.MoveSideways(axis_value);
+	character_input_.MoveSideways(axis_value);
 }
 
 // called for basic attack
 void ADungeonCharacter::OnBasicAttackPressed()
 {
-	if (!basic_attacking1h_ && !casting1h_)
-	{
-		basic_attacking1h_ = true;
-		GetWorldTimerManager().SetTimer(UnusedHandle, this, &ADungeonCharacter::ResetBasicAttack, 2.f, false);
-	}
+	character_input_.BasicAttack(true);
 }
 
-void ADungeonCharacter::ResetBasicAttack()
+void ADungeonCharacter::OnBasicAttackReleased()
 {
-	basic_attacking1h_ = false;
+	character_input_.BasicAttack(false);
 }
 
 // called for special attack
 void ADungeonCharacter::OnSpecialAttackPressed()
 {
-
+	character_input_.SpecialAttack(true);
+}
+void ADungeonCharacter::OnSpecialAttackReleased()
+{
+	character_input_.SpecialAttack(false);
 }
 
 // called for ability 1
 void ADungeonCharacter::OnAbility1Pressed()
 {
+}
 
+void ADungeonCharacter::OnAbility1Released()
+{
 }
 
 // called for ability 2
 void ADungeonCharacter::OnAbility2Pressed()
 {
+}
 
+void ADungeonCharacter::OnAbility2Released()
+{
 }
 
 // called for ability 3
 void ADungeonCharacter::OnAbility3Pressed()
 {
+}
 
+void ADungeonCharacter::OnAbility3Released()
+{
 }
 
 // called for ability 4
 void ADungeonCharacter::OnAbility4Pressed()
 {
+}
 
+void ADungeonCharacter::OnAbility4Released()
+{
+}
+
+const float ADungeonCharacter::GetCharacterYaw()
+{
+	return current_yaw_;
 }
