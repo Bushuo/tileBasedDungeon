@@ -14,10 +14,10 @@ struct FIntVector2D
 
 /**
  * This struct represents a rectangular room interior that is used to create rooms during world generation
- * The coordinate system is lefthanded when looking down x+, y+ is right and z+ is up
+ * The coordinate system is lefthanded. When looking down X+ : Y+ is right and Z+ is up
  * The StartPoint is defined as the lower left point of the rectangle. 
  * Size is the edge length
- * The z values of the classes interface are never used
+ * The Z values of the classes interface are never used
  */
 class TILEBASEDDUNGEON_API FRoom
 {
@@ -33,9 +33,12 @@ public:
 	int32 GetLeft() const;
 	int32 GetRight() const;
 	
-	int32 DistanceToOther(FRoom Other) const;
+	int32 DistanceToOther(const FRoom& Other) const;
 
 private:
 	FIntVector2D Start;
 	FIntVector2D Size;
+
+	int32 CalculateVerticalDistance(const FRoom& Other) const;
+	int32 CalculateHorizontalDistance(const FRoom& Other) const;
 };

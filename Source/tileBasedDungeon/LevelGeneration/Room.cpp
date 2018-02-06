@@ -33,30 +33,10 @@ int32 FRoom::GetRight() const { return FMath::Max(Start.Y, Start.Y + Size.Y); }
 /** returns the minimum length a corridor based on a grid would have to be to go from this to other
 * returns -1 if overlapping
 */
-int32 FRoom::DistanceToOther(FRoom Other) const 
+int32 FRoom::DistanceToOther(const FRoom& Other) const 
 { 
-	int32 VerticalDistance = 0, HorizontalDistance = 0;
-
-	// calculate vertical distance
-	if (GetTop() >= Other.GetBottom()) {
-		VerticalDistance = GetTop() - Other.GetBottom();
-	} 
-	else if (GetBottom() <= Other.GetTop()) {
-		VerticalDistance = Other.GetTop() - GetBottom();
-	} 
-	else {
-		VerticalDistance = -1;
-	}
-	// calculate horizontal distance
-	if (GetLeft() >= Other.GetRight()) {
-		HorizontalDistance = GetLeft() - Other.GetRight();
-	} 
-	else if (GetRight() <= Other.GetLeft()) {
-		HorizontalDistance = Other.GetLeft() - GetRight();
-	} 
-	else {
-		HorizontalDistance = -1;
-	}
+	int32 VerticalDistance = CalculateVerticalDistance(Other);
+	int32 HorizontalDistance = CalculateHorizontalDistance(Other);
 
 	if ((VerticalDistance == -1) && (HorizontalDistance == -1)) { 
 		return -1;
@@ -68,5 +48,37 @@ int32 FRoom::DistanceToOther(FRoom Other) const
 			return VerticalDistance;
 	}
 	return HorizontalDistance + VerticalDistance;
+}
+
+// returns -1 if overlaping vertically with the other room
+int32 FRoom::CalculateVerticalDistance(const FRoom& Other) const
+{
+	int32 VerticalDistance = 0;
+	if (GetTop() >= Other.GetBottom()) {
+		VerticalDistance = GetTop() - Other.GetBottom();
+	}
+	else if (GetBottom() <= Other.GetTop()) {
+		VerticalDistance = Other.GetTop() - GetBottom();
+	}
+	else {
+		VerticalDistance = -1;
+	}
+	return VerticalDistance;
+}
+
+// returns -1 if overlaping horizontaly with the other room
+int32 FRoom::CalculateHorizontalDistance(const FRoom & Other) const
+{
+	int32 HorizontalDistance = 0;
+	if (GetLeft() >= Other.GetRight()) {
+		HorizontalDistance = GetLeft() - Other.GetRight();
+	}
+	else if (GetRight() <= Other.GetLeft()) {
+		HorizontalDistance = Other.GetLeft() - GetRight();
+	}
+	else {
+		HorizontalDistance = -1;
+	}
+	return HorizontalDistance;
 }
 
