@@ -10,10 +10,12 @@ ADungeonGenerator::ADungeonGenerator()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	// set default level size
+	/// set default level size
 	TILE_SIZE = 100;
 	StageLengthAlongY = 51;
 	StageLengthAlongX = 51;
+
+	RandomNumberGenerator = std::mt19937(RandomDevice());
 
 	CurrentRegion = -1;
 	TryPlaceRoom = 1;
@@ -21,6 +23,7 @@ ADungeonGenerator::ADungeonGenerator()
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
+	RootComponent->SetMobility(EComponentMobility::Static);
 
 	// create default subobjects for instanced static meshes
 	Wall = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
@@ -36,26 +39,7 @@ void ADungeonGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (StageLengthAlongX % 2 == 0) {
-		StageLengthAlongX++;
-	}
-	if (StageLengthAlongY % 2 == 0) {
-		StageLengthAlongY++;
-	}
-
-	StageSize = StageLengthAlongY * StageLengthAlongX;
-	Stage = new EBlockType[StageSize];
-	Region = new int32[StageSize];
-	RandomNumberGenerator = std::mt19937(RandomDevice());
-
-	for (int i = 0; i < GetStageSize(); i++)
-	{	
-		// fill every element with wall
-		Stage[i] = EBlockType::EWall;
-		// set default region
-		Region[i] = -1;
-	}
-
+	InitializeStage();
 	AddRooms();
 	//DrawRegionColors();
 
@@ -74,6 +58,30 @@ void ADungeonGenerator::BeginPlay()
 	ConnectRegions();
 	RemoveDeadEnds();
 	SpawnInstancedStage(); // last step
+}
+
+void ADungeonGenerator::InitializeStage()
+{
+	/// check if stage length is odd on both axis
+	/// if not make odd
+	if (StageLengthAlongX % 2 == 0) {
+		StageLengthAlongX++;
+	}
+	if (StageLengthAlongY % 2 == 0) {
+		StageLengthAlongY++;
+	}
+
+	/// calculate stage size an setup containers
+	StageSize = StageLengthAlongY * StageLengthAlongX;
+	Stage = new EBlockType[StageSize];
+	Region = new int32[StageSize];
+
+	/// fillup the stage and set default region
+	for (int i = 0; i < GetStageSize(); i++)
+	{
+		Stage[i] = EBlockType::EWall;
+		Region[i] = -1;
+	}
 }
 
 void ADungeonGenerator::SpawnInstancedStage()
@@ -479,6 +487,8 @@ bool ADungeonGenerator::OneIn(int x)
 	auto one_in_x = uni_int(RandomNumberGenerator);
 	return one_in_x > 1 ? false : true;
 }
+
+
 
 void ADungeonGenerator::BeginDestroy()
 {

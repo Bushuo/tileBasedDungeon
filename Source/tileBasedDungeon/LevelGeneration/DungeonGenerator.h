@@ -26,10 +26,11 @@ UCLASS()
 class TILEBASEDDUNGEON_API ADungeonGenerator : public AActor
 {
 	GENERATED_BODY()
-// members
-//////////
+/*
+*members
+*/ 
+
 private: 
-	/** tile size */
 	UPROPERTY(EditAnywhere, Category = "Leveldata")
 	uint32 TILE_SIZE;
 
@@ -52,23 +53,21 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Leveldata", meta=(UIMin = "0.0", UIMax = "1.0", ClampMin = "0.0", ClampMax = "1.0"))
 	float WindingPercentage;  // how windy the corridors of the maze should be
 
-
 	int32 CurrentRegion;
 
 	std::random_device RandomDevice;
 	std::mt19937 RandomNumberGenerator;
 
+	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;
-
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = leveldata)
+	UPROPERTY(EditDefaultsOnly, Category = "Leveldata")
 	UInstancedStaticMeshComponent* Wall;
-	UPROPERTY(EditDefaultsOnly, Category = leveldata)
+	UPROPERTY(EditDefaultsOnly, Category = "Leveldata")
 	UInstancedStaticMeshComponent* Floor;
 
-// member functions
-///////////////////
-private:
+/*
+* member functions
+*/
 
 	/** spawn InstancedStaticMesh actors for values inside the array */
 	void SpawnInstancedStage();
@@ -116,6 +115,9 @@ private:
 	* example 1 in 6 for a regular dice
 	*/
 	bool OneIn(int x);
+
+	/** initializes the stage to its most basic form: plain walls */
+	void InitializeStage();
 
 public:	
 	// Sets default values for this actor's properties
