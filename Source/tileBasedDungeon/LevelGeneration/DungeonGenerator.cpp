@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 #include "tileBasedDungeon.h"
 #include "DungeonGenerator.h"
@@ -64,9 +63,7 @@ void ADungeonGenerator::BeginPlay()
 	}
 
 	ConnectRegions();
-
 	RemoveDeadEnds();
-
 	SpawnInstancedStage(); // last step
 }
 
@@ -133,15 +130,15 @@ void ADungeonGenerator::AddRooms()
 		int room_x = FMath::RandRange(1, (stage_length_along_x_ - length_x) / 2) * 2 + 1;
 		int room_y = FMath::RandRange(1, (stage_length_along_y_ - length_y) / 2) * 2 + 1;
 		
-		Room new_room(room_x, room_y, length_x, length_y);
+		FRoom new_room(room_x, room_y, length_x, length_y);
 
 		bool b_overlaps = false;
 
-		if (((new_room.along_x_ + new_room.length_x_) >= (stage_length_along_x_ - 1)) ||
-			((new_room.along_y_ + new_room.length_y_) >= (stage_length_along_y_ - 1))) // check if out of bounds
+		if (((new_room.GetStartPoint().X + new_room.GetSize().X) >= (stage_length_along_x_ - 1)) ||
+			((new_room.GetStartPoint().Y + new_room.GetSize().Y) >= (stage_length_along_y_ - 1))) // check if out of bounds
 			b_overlaps = true;
 
-		for (Room other : rooms_)
+		for (FRoom other : rooms_)
 		{ // search for overlapping rooms
 			if (new_room.DistanceToOther(other) <= 0.f)  // check if overlapping
 			{
@@ -153,13 +150,13 @@ void ADungeonGenerator::AddRooms()
 			continue; // overlapping room! -> try to place new room
 
 		rooms_.push_back(new_room);
-		//UE_LOG(LogTemp, Warning, TEXT("Added new room (X: %d | Y: %d | length X: %d | length Y: %d)"),new_room.along_x_, new_room.along_y_, new_room.length_x_, new_room.length_y_);
+		//UE_LOG(LogTemp, Warning, TEXT("Added new room (X: %d | Y: %d | length X: %d | length Y: %d)"),new_room.StartPointX, new_room.StartPointY, new_room.SizeX, new_room.SizeY);
 
 		current_region_++; // each room should be a new region
 
-		for (int pos_x = new_room.along_x_; pos_x < (new_room.along_x_ + new_room.length_x_); pos_x++)
+		for (int pos_x = new_room.GetStartPoint().X; pos_x < (new_room.GetStartPoint().X + new_room.GetSize().X); pos_x++)
 		{
-			for (int pos_y = new_room.along_y_; pos_y < (new_room.along_y_ + new_room.length_y_); pos_y++)
+			for (int pos_y = new_room.GetStartPoint().Y; pos_y < (new_room.GetStartPoint().Y + new_room.GetSize().Y); pos_y++)
 			{
 				Carve(FVector2D(pos_x, pos_y));
 			}

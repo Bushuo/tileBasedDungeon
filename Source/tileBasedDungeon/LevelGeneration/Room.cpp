@@ -1,67 +1,72 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 #include "tileBasedDungeon.h"
 #include "Room.h"
-
-Room::Room(int x, int y, int length_x, int length_y)
+FRoom::FRoom(FIntVector Start, FIntVector Size)
 {
-	along_x_ = x;
-	along_y_ = y;
-	length_x_ = length_y;
-	length_y_ = length_y;
+	this->Start.X = Start.X;
+	this->Start.Y = Start.Y;
+	this->Size.X = Size.X;
+	this->Size.Y = Size.Y;
 }
 
-int Room::DistanceToOther(Room other)
+FRoom::FRoom(FIntVector Start, int32 Size) : FRoom(Start, FIntVector(Size))
 {
-	int vertical;
-	if (GetTop() >= other.GetBottom())
-	{
-		vertical = GetTop() - other.GetBottom();
-	}
-	else if (GetBottom() <= other.GetTop())
-	{
-		vertical = other.GetTop() - GetBottom();
-	}
-	else
-	{
-		vertical = -1;
-	}
+}
 
-	int horizontal;
-	if (GetLeft() >= other.GetRight()) {
-		horizontal = GetLeft() - other.GetRight();
-	}
-	else if (GetRight() <= other.GetLeft()) {
-		horizontal = other.GetLeft() - GetRight();
-	}
+FRoom::FRoom(int32 StartPointX, int32 StartPointY, int32 SizeX, int32 SizeY) : FRoom(FIntVector(StartPointX, StartPointY, 0), FIntVector(SizeX, SizeY, 0))
+{
+}
+
+FIntVector FRoom::GetStartPoint() const { return FIntVector(Start.X, Start.Y, 0); }
+
+FIntVector FRoom::GetSize() const { return FIntVector(Size.X, Size.Y, 0); }
+
+int32 FRoom::GetTop() const { return FMath::Min(Start.X, Start.X + Size.X); }
+
+int32 FRoom::GetBottom() const { return FMath::Max(Start.X, Start.X + Size.X); }
+
+int32 FRoom::GetLeft() const { return FMath::Min(Start.Y, Start.Y + Size.Y); }
+
+int32 FRoom::GetRight() const { return FMath::Max(Start.Y, Start.Y + Size.Y); }
+
+/** returns the minimum length a corridor based on a grid would have to be to go from this to other
+* returns -1 if overlapping
+*/
+int32 FRoom::DistanceToOther(FRoom Other) const 
+{ 
+	int32 VerticalDistance = 0, HorizontalDistance = 0;
+
+	// calculate vertical distance
+	if (GetTop() >= Other.GetBottom()) {
+		VerticalDistance = GetTop() - Other.GetBottom();
+	} 
+	else if (GetBottom() <= Other.GetTop()) {
+		VerticalDistance = Other.GetTop() - GetBottom();
+	} 
 	else {
-		horizontal = -1;
+		VerticalDistance = -1;
+	}
+	// calculate horizontal distance
+	if (GetLeft() >= Other.GetRight()) {
+		HorizontalDistance = GetLeft() - Other.GetRight();
+	} 
+	else if (GetRight() <= Other.GetLeft()) {
+		HorizontalDistance = Other.GetLeft() - GetRight();
+	} 
+	else {
+		HorizontalDistance = -1;
 	}
 
-	if ((vertical == -1) && (horizontal == -1)) return -1;
-	if (vertical == -1) return horizontal;
-	if (horizontal == -1) return vertical;
-	return horizontal + vertical;
+	if ((VerticalDistance == -1) && (HorizontalDistance == -1)) { 
+		return -1;
+	}
+	if (VerticalDistance == -1) {
+		return HorizontalDistance;
+	}
+	if (HorizontalDistance == -1) {
+			return VerticalDistance;
+	}
+	return HorizontalDistance + VerticalDistance;
 }
-
-int Room::GetLeft()
-{
-	return FMath::Min(along_y_, along_y_ + length_y_);
-}
-
-int Room::GetTop()
-{
-	return FMath::Min(along_x_, along_x_ + length_x_);
-}
-
-int Room::GetRight()
-{
-	return FMath::Max(along_y_, along_y_ + length_y_);
-}
-
-int Room::GetBottom()
-{
-	return FMath::Max(along_x_, along_x_ + length_x_);
-}
-
 

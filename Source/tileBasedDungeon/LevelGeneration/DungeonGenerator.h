@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 #pragma once
 #include "GameFramework/Actor.h"
@@ -32,7 +32,7 @@ private:
 	int* region_;
 
 	/** place to store the stage's rooms */
-	std::vector<Room> rooms_;
+	std::vector<FRoom> rooms_;
 
 	unsigned int stage_size_;  // 0 to 65,535
 	UPROPERTY(VisibleAnywhere, Category = leveldata)
