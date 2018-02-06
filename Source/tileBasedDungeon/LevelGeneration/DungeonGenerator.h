@@ -120,6 +120,9 @@ member functions
 	/** initializes the stage to its most basic form: plain walls */
 	void InitializeStage();
 
+	/** gives back a candidate room based on specified generation parameters */
+	FRoom GetCandidateRoom();
+
 public:	
 	// Sets default values for this actor's properties
 	ADungeonGenerator();

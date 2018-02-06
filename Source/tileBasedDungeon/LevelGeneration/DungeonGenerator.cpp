@@ -82,70 +82,11 @@ void ADungeonGenerator::InitializeStage()
 	}
 }
 
-void ADungeonGenerator::SpawnInstancedStage()
-{
-	for (int i = 0; i < GetStageSize(); i++)
-	{
-		EBlockType current_block = Stage[i];
-		FVector current_location(i / GetStageLengthY() * TILE_SIZE, i % GetStageLengthY() * TILE_SIZE, 0);
-		switch (current_block)
-		{
-		case EBlockType::EFloor:
-		{ // dont add a wall
-			current_location.Z -= 50;
-			Floor->AddInstance(FTransform(FVector(current_location)));
-		}
-			break;
-		case EBlockType::EDoor_Closed:
-		{ // dont add a wall
-			current_location.Z -= 50;
-			Floor->AddInstance(FTransform(FVector(current_location)));
-		}
-			break;
-		case EBlockType::EDoor_Open:
-		{ // dont add a wall
-			current_location.Z -= 50;
-			Floor->AddInstance(FTransform(FVector(current_location)));
-		}
-		break;
-		case EBlockType::EWall:
-		{ // spawn a wall mesh
-			if (Wall)
-				Wall->AddInstance(FTransform(FVector(current_location)));
-		}
-			break;
-		default:
-			break;
-		}
-	}
-}
-
 void ADungeonGenerator::AddRooms()
 {
 	for (int i = 0; i < TryPlaceRoom; i++)
 	{
-		// pick a random roomsize
-		// avoid too narrow rooms
-		// set it odd sized to line up with maze
-		int size = FMath::RandRange(1, 3) * 2 + 1;
-		int rectangularity = FMath::RandRange(0, 1 + size / 2) * 2;
-		int length_x = size;
-		int length_y = size;
-		if (FMath::RandBool())
-		{
-			length_x += rectangularity;
-		}
-		else
-		{
-			length_y += rectangularity;
-		}
-
-		// set room origin point
-
-		int room_x = FMath::RandRange(1, (StageLengthAlongX - length_x) / 2) * 2 + 1;
-		int room_y = FMath::RandRange(1, (StageLengthAlongY - length_y) / 2) * 2 + 1;
-		
-		FRoom new_room(room_x, room_y, length_x, length_y);
+		FRoom new_room = GetCandidateRoom();
 
 		bool b_overlaps = false;
 
@@ -176,6 +117,30 @@ void ADungeonGenerator::AddRooms()
 			}
 		}
 	}
+}
+
+FRoom ADungeonGenerator::GetCandidateRoom()
+{
+	/// pick a random roomsize
+	/// set it odd sized to line up with maze
+	int RoomSize = FMath::RandRange(1, 3) * 2 + 1;
+	int Rectangularity = FMath::RandRange(0, 1 + RoomSize / 2) * 2;
+	int RoomSizeX = RoomSize;
+	int RoomSizeY = RoomSize;
+
+	/// avoid too narrow rooms. make the room more rectangular
+	if (FMath::RandBool()) {
+		RoomSizeX += Rectangularity;
+	}
+	else {
+		RoomSizeY += Rectangularity;
+	}
+
+	/// set room origin point TODO something is odd here (probably because x is up and y is right)
+	int RoomStartPointX = FMath::RandRange(1, (StageLengthAlongX - RoomSizeX) / 2) * 2 + 1;
+	int RoomStartPointY = FMath::RandRange(1, (StageLengthAlongY - RoomSizeY) / 2) * 2 + 1;
+
+	return FRoom(RoomStartPointX, RoomStartPointY, RoomSizeX, RoomSizeY);
 }
 
 void ADungeonGenerator::GrowMaze(FVector2D start)
@@ -422,6 +387,44 @@ void ADungeonGenerator::RemoveDeadEnds()
 				b_done = false;
 				SetBlockAt(FVector2D(x, y), EBlockType::EWall);
 			}
+		}
+	}
+}
+
+void ADungeonGenerator::SpawnInstancedStage()
+{
+	for (int i = 0; i < GetStageSize(); i++)
+	{
+		EBlockType current_block = Stage[i];
+		FVector current_location(i / GetStageLengthY() * TILE_SIZE, i % GetStageLengthY() * TILE_SIZE, 0);
+		switch (current_block)
+		{
+		case EBlockType::EFloor:
+		{ // dont add a wall
+			current_location.Z -= 50;
+			Floor->AddInstance(FTransform(FVector(current_location)));
+		}
+		break;
+		case EBlockType::EDoor_Closed:
+		{ // dont add a wall
+			current_location.Z -= 50;
+			Floor->AddInstance(FTransform(FVector(current_location)));
+		}
+		break;
+		case EBlockType::EDoor_Open:
+		{ // dont add a wall
+			current_location.Z -= 50;
+			Floor->AddInstance(FTransform(FVector(current_location)));
+		}
+		break;
+		case EBlockType::EWall:
+		{ // spawn a wall mesh
+			if (Wall)
+				Wall->AddInstance(FTransform(FVector(current_location)));
+		}
+		break;
+		default:
+			break;
 		}
 	}
 }
