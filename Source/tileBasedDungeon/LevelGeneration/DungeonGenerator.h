@@ -7,6 +7,9 @@
 #include "Room.h"
 #include "DungeonGenerator.generated.h"
 
+/**
+* This enum represents the different values an array element can be inside the level array representation
+*/
 UENUM()
 enum class EBlockType {
 	EFloor,
@@ -15,6 +18,10 @@ enum class EBlockType {
 	EDoor_Open
 };
 
+/**
+* This class generates a level based on a 2 dimensional array
+* The coordinate system is lefthanded when looking down x+, y+ is right and z+ is up
+*/
 UCLASS()
 class TILEBASEDDUNGEON_API ADungeonGenerator : public AActor
 {
@@ -23,41 +30,41 @@ class TILEBASEDDUNGEON_API ADungeonGenerator : public AActor
 //////////
 private: 
 	/** tile size */
-	UPROPERTY(VisibleAnywhere, Category = leveldata)
-	int TILE_SIZE_;
+	UPROPERTY(EditAnywhere, Category = "Leveldata")
+	uint32 TILE_SIZE;
 
 	/** pointer to store the rectangular stage array in */
-	EBlockType* stage_;
+	EBlockType* Stage;
 	/** pointer to store the region the position in stage is part of*/
-	int* region_;
+	int32* Region;
 
 	/** place to store the stage's rooms */
-	std::vector<FRoom> rooms_;
+	TArray<FRoom> Rooms;
 
-	unsigned int stage_size_;  // 0 to 65,535
-	UPROPERTY(VisibleAnywhere, Category = leveldata)
-	int stage_length_along_y_; // has to be odd along y-axis
-	UPROPERTY(VisibleAnywhere, Category = leveldata)
-	int stage_length_along_x_; // has to be odd along x-axis
+	uint32 StageSize;  // 0 to 65,535
+	UPROPERTY(VisibleAnywhere, Category = "Leveldata")
+	int32 StageLengthAlongY; // has to be odd along y-axis
+	UPROPERTY(VisibleAnywhere, Category = "Leveldata")
+	int32 StageLengthAlongX; // has to be odd along x-axis
 
-	UPROPERTY(EditAnywhere, Category = leveldata)
-	int num_room_tries_;  // numer of times a room tries to get placed
-	UPROPERTY(EditAnywhere, Category = leveldata, meta=(UIMin = "0.0", UIMax = "1.0", ClampMin = "0.0", ClampMax = "1.0"))
-	float winding_percentage_;  // how windy the corridors of the maze should be
+	UPROPERTY(EditAnywhere, Category = "Leveldata")
+	int32 TryPlaceRoom;  // how many times a room tries to get placed
+	UPROPERTY(EditAnywhere, Category = "Leveldata", meta=(UIMin = "0.0", UIMax = "1.0", ClampMin = "0.0", ClampMax = "1.0"))
+	float WindingPercentage;  // how windy the corridors of the maze should be
 
 
-	int current_region_;
+	int32 CurrentRegion;
 
-	std::random_device rd;
-	std::mt19937 rng;
+	std::random_device RandomDevice;
+	std::mt19937 RandomNumberGenerator;
 
-	USphereComponent* root_;
+	USceneComponent* Root;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = leveldata)
-	UInstancedStaticMeshComponent* wall_;
+	UInstancedStaticMeshComponent* Wall;
 	UPROPERTY(EditDefaultsOnly, Category = leveldata)
-	UInstancedStaticMeshComponent* floor_;
+	UInstancedStaticMeshComponent* Floor;
 
 // member functions
 ///////////////////
@@ -120,13 +127,13 @@ public:
 	/** called upon destroy - overrides the AActors base functionalliy */
 	void BeginDestroy() override;
 
-	UFUNCTION(BlueprintPure, category = leveldata)
+	UFUNCTION(BlueprintPure, category = "Leveldata")
 	int GetStageSize() const;
-	UFUNCTION(BlueprintPure, category = leveldata)
+	UFUNCTION(BlueprintPure, category = "Leveldata")
 	int GetStageLengthY() const;
-	UFUNCTION(BlueprintPure, category = leveldata)
+	UFUNCTION(BlueprintPure, category = "Leveldata")
 	int GetStageLengthX() const;
 
-	UFUNCTION(BlueprintPure, category = leveldata)
+	UFUNCTION(BlueprintPure, category = "Leveldata")
 	EBlockType GetTile(FVector2D position);
 };

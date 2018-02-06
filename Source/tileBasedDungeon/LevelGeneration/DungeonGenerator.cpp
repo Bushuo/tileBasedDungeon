@@ -11,26 +11,24 @@ ADungeonGenerator::ADungeonGenerator()
 	PrimaryActorTick.bCanEverTick = false;
 
 	// set default level size
-	TILE_SIZE_ = 100;
-	stage_length_along_y_ = 51;
-	stage_length_along_x_ = 51;
-	stage_size_ = stage_length_along_y_ * stage_length_along_x_;
-	stage_ = new EBlockType[stage_size_];
-	region_ = new int[stage_size_];
+	TILE_SIZE = 100;
+	StageLengthAlongY = 51;
+	StageLengthAlongX = 51;
 
-	current_region_ = -1;
-	num_room_tries_ = 1;
-	winding_percentage_ = .3f;
+	CurrentRegion = -1;
+	TryPlaceRoom = 1;
+	WindingPercentage = .3f;
 
-	root_ = CreateDefaultSubobject<USphereComponent>(TEXT("Root"));
-	RootComponent = root_;
+	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = Root;
+
 	// create default subobjects for instanced static meshes
-	wall_ = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
-	wall_->SetupAttachment(RootComponent);
-	floor_ = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Floor"));
-	floor_->SetupAttachment(RootComponent);
+	Wall = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
+	Wall->SetupAttachment(RootComponent);
+	Floor = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Floor"));
+	Floor->SetupAttachment(RootComponent);
 	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> material_test(TEXT("MaterialInstanceConstant'/Engine/VREditor/Tutorial/UMG/Specialized/Materials/flat_white.flat_white'"));
-	//floor_->SetMaterial(0, material_test.Object);
+	//Floor->SetMaterial(0, material_test.Object);
 }
 
 // Called when the game starts or when spawned
@@ -38,21 +36,32 @@ void ADungeonGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	rng = std::mt19937(rd());
+	if (StageLengthAlongX % 2 == 0) {
+		StageLengthAlongX++;
+	}
+	if (StageLengthAlongY % 2 == 0) {
+		StageLengthAlongY++;
+	}
+
+	StageSize = StageLengthAlongY * StageLengthAlongX;
+	Stage = new EBlockType[StageSize];
+	Region = new int32[StageSize];
+	RandomNumberGenerator = std::mt19937(RandomDevice());
+
 	for (int i = 0; i < GetStageSize(); i++)
 	{	
-		// fill everyslot with wall
-		stage_[i] = EBlockType::EWall;
+		// fill every element with wall
+		Stage[i] = EBlockType::EWall;
 		// set default region
-		region_[i] = -1;
+		Region[i] = -1;
 	}
 
 	AddRooms();
 	//DrawRegionColors();
 
-	for (int y = 1; y < stage_length_along_y_; y += 2)
+	for (int32 y = 1; y < StageLengthAlongY; y += 2)
 	{
-		for (int x = 1; x < stage_length_along_x_; x += 2)
+		for (int32 x = 1; x < StageLengthAlongX; x += 2)
 		{
 			FVector2D pos(x, y);
 			if (GetTile(pos) != EBlockType::EWall)
@@ -71,32 +80,32 @@ void ADungeonGenerator::SpawnInstancedStage()
 {
 	for (int i = 0; i < GetStageSize(); i++)
 	{
-		EBlockType current_block = stage_[i];
-		FVector current_location(i / GetStageLengthY() * TILE_SIZE_, i % GetStageLengthY() * TILE_SIZE_, 0);
+		EBlockType current_block = Stage[i];
+		FVector current_location(i / GetStageLengthY() * TILE_SIZE, i % GetStageLengthY() * TILE_SIZE, 0);
 		switch (current_block)
 		{
 		case EBlockType::EFloor:
 		{ // dont add a wall
 			current_location.Z -= 50;
-			floor_->AddInstance(FTransform(FVector(current_location)));
+			Floor->AddInstance(FTransform(FVector(current_location)));
 		}
 			break;
 		case EBlockType::EDoor_Closed:
 		{ // dont add a wall
 			current_location.Z -= 50;
-			floor_->AddInstance(FTransform(FVector(current_location)));
+			Floor->AddInstance(FTransform(FVector(current_location)));
 		}
 			break;
 		case EBlockType::EDoor_Open:
 		{ // dont add a wall
 			current_location.Z -= 50;
-			floor_->AddInstance(FTransform(FVector(current_location)));
+			Floor->AddInstance(FTransform(FVector(current_location)));
 		}
 		break;
 		case EBlockType::EWall:
 		{ // spawn a wall mesh
-			if (wall_)
-				wall_->AddInstance(FTransform(FVector(current_location)));
+			if (Wall)
+				Wall->AddInstance(FTransform(FVector(current_location)));
 		}
 			break;
 		default:
@@ -107,7 +116,7 @@ void ADungeonGenerator::SpawnInstancedStage()
 
 void ADungeonGenerator::AddRooms()
 {
-	for (int i = 0; i < num_room_tries_; i++)
+	for (int i = 0; i < TryPlaceRoom; i++)
 	{
 		// pick a random roomsize
 		// avoid too narrow rooms
@@ -127,18 +136,18 @@ void ADungeonGenerator::AddRooms()
 
 		// set room origin point
 
-		int room_x = FMath::RandRange(1, (stage_length_along_x_ - length_x) / 2) * 2 + 1;
-		int room_y = FMath::RandRange(1, (stage_length_along_y_ - length_y) / 2) * 2 + 1;
+		int room_x = FMath::RandRange(1, (StageLengthAlongX - length_x) / 2) * 2 + 1;
+		int room_y = FMath::RandRange(1, (StageLengthAlongY - length_y) / 2) * 2 + 1;
 		
 		FRoom new_room(room_x, room_y, length_x, length_y);
 
 		bool b_overlaps = false;
 
-		if (((new_room.GetStartPoint().X + new_room.GetSize().X) >= (stage_length_along_x_ - 1)) ||
-			((new_room.GetStartPoint().Y + new_room.GetSize().Y) >= (stage_length_along_y_ - 1))) // check if out of bounds
+		if (((new_room.GetStartPoint().X + new_room.GetSize().X) >= (StageLengthAlongX - 1)) ||
+			((new_room.GetStartPoint().Y + new_room.GetSize().Y) >= (StageLengthAlongY - 1))) // check if out of bounds
 			b_overlaps = true;
 
-		for (FRoom other : rooms_)
+		for (FRoom other : Rooms)
 		{ // search for overlapping rooms
 			if (new_room.DistanceToOther(other) <= 0.f)  // check if overlapping
 			{
@@ -146,13 +155,12 @@ void ADungeonGenerator::AddRooms()
 				break;
 			}
 		}
-		if (b_overlaps) 
+		if (b_overlaps) {
 			continue; // overlapping room! -> try to place new room
+		}
 
-		rooms_.push_back(new_room);
-		//UE_LOG(LogTemp, Warning, TEXT("Added new room (X: %d | Y: %d | length X: %d | length Y: %d)"),new_room.StartPointX, new_room.StartPointY, new_room.SizeX, new_room.SizeY);
-
-		current_region_++; // each room should be a new region
+		Rooms.Push(new_room);
+		CurrentRegion++; // each room should be a new region
 
 		for (int pos_x = new_room.GetStartPoint().X; pos_x < (new_room.GetStartPoint().X + new_room.GetSize().X); pos_x++)
 		{
@@ -169,7 +177,7 @@ void ADungeonGenerator::GrowMaze(FVector2D start)
 	TArray<FVector2D> cells;
 	FVector2D last_direction;
 
-	current_region_++;
+	CurrentRegion++;
 	Carve(start);
 	cells.Add(start);
 	while (cells.Num() > 0)
@@ -179,22 +187,26 @@ void ADungeonGenerator::GrowMaze(FVector2D start)
 		TArray<FVector2D> unmade_cells;
 
 		// check all cardinal directions
-		if (CanCarve(cell, FVector2D(0, 1)))
+		if (CanCarve(cell, FVector2D(0, 1))) {
 			unmade_cells.Add(FVector2D(0, 1));
-		if (CanCarve(cell, FVector2D(0, -1)))
+		}
+		if (CanCarve(cell, FVector2D(0, -1))) {
 			unmade_cells.Add(FVector2D(0, -1));
-		if (CanCarve(cell, FVector2D(1, 0)))
+		}
+		if (CanCarve(cell, FVector2D(1, 0))) {
 			unmade_cells.Add(FVector2D(1, 0));
-		if (CanCarve(cell, FVector2D(-1, 0)))
+		}
+		if (CanCarve(cell, FVector2D(-1, 0))) {
 			unmade_cells.Add(FVector2D(-1, 0));
+		}
 
 		// carve in a random direction
 		if (unmade_cells.Num() > 0)
 		{
 			FVector2D direction;
 			std::uniform_real_distribution<float> uni_float(0.f, 1.f);
-			float random_percentage = uni_float(rng);
-			if (unmade_cells.Contains(last_direction) && (random_percentage > winding_percentage_))
+			float random_percentage = uni_float(RandomNumberGenerator);
+			if (unmade_cells.Contains(last_direction) && (random_percentage > WindingPercentage))
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("hit random percent = %f"), random_percentage);
 				direction = last_direction;
@@ -202,7 +214,7 @@ void ADungeonGenerator::GrowMaze(FVector2D start)
 			else
 			{
 				std::uniform_int_distribution<int> uni_int(0, unmade_cells.Num() - 1);
-				auto random_direction = uni_int(rng);
+				auto random_direction = uni_int(RandomNumberGenerator);
 				direction = unmade_cells[random_direction];
 				//UE_LOG(LogTemp, Warning, TEXT("random int = %d"), random_direction);
 				//UE_LOG(LogTemp, Warning, TEXT("carved %d | %d"), cell.X + unmade_cells[random_direction].X, cell.Y + unmade_cells[random_direction].Y);
@@ -225,20 +237,20 @@ void ADungeonGenerator::GrowMaze(FVector2D start)
 void ADungeonGenerator::DrawRegionColors()
 {
 	TArray<FColor> colors;
-	for (int i = 0; i < current_region_+1; i++)
+	for (int i = 0; i < CurrentRegion+1; i++)
 	{
 		colors.Add(FColor::MakeRandomColor());
 	}
 	//UE_LOG(LogTemp, Warning, TEXT(" color size is: %d"), colors.Num());
-	for (int x = 0; x < stage_length_along_x_; x++)
+	for (int x = 0; x < StageLengthAlongX; x++)
 	{
-		for (int y = 0; y < stage_length_along_y_; y++)
+		for (int y = 0; y < StageLengthAlongY; y++)
 		{
 
 			if (GetTile(FVector2D(x, y)) == EBlockType::EFloor) 
 			{
-				FVector pos(x * TILE_SIZE_, y * TILE_SIZE_, 0);
-				int index = region_[x * stage_length_along_y_ + y];
+				FVector pos(x * TILE_SIZE, y * TILE_SIZE, 0);
+				int index = Region[x * StageLengthAlongY + y];
 				FPlane plane = UKismetMathLibrary::MakePlaneFromPointAndNormal(pos, FVector(0, 0, 1));
 				//UE_LOG(LogTemp, Warning, TEXT(" Draw Position is: x %d y %d\n tile is: %d\n regionidx: %d"),x,y,int(GetTile(FVector2D(x,y))),index);
 				UKismetSystemLibrary::DrawDebugPlane(GetWorld(), plane, pos, 50, colors[index], 10.f);
@@ -252,9 +264,9 @@ void ADungeonGenerator::ConnectRegions()
 {
 	TMap<FVector2D, TSet<int>> connector_regions;
 	
-	for (int x = 1; x < stage_length_along_x_ - 1; x++)
+	for (int x = 1; x < StageLengthAlongX - 1; x++)
 	{ // iterate over x Axis excluding the outer walls of the stage
-		for (int y = 1; y < stage_length_along_y_ - 1; y++)
+		for (int y = 1; y < StageLengthAlongY - 1; y++)
 		{ // iterate over y Axis excluding the outer walls of the stage
 			TSet<int> adjacent_regions; // adjacent region identifiers of current position
 			int default_region = -1;
@@ -265,32 +277,29 @@ void ADungeonGenerator::ConnectRegions()
 			// check cardinal directions
 			
 			// UP
-			int region = region_[(x + 1) * stage_length_along_y_ + y];  // region identifier of adjacent position
-			if (region != default_region)
-			{
+			int region = Region[(x + 1) * StageLengthAlongY + y];  // region identifier of adjacent position
+			if (region != default_region) {
 				adjacent_regions.Add(region);
 			}
 			// DOWN
-			region = region_[(x - 1) * stage_length_along_y_ + y];
-			if (region != default_region)
-			{
+			region = Region[(x - 1) * StageLengthAlongY + y];
+			if (region != default_region) {
 				adjacent_regions.Add(region);
 			}
 			// RIGHT
-			region = region_[x * stage_length_along_y_ + y + 1];
-			if (region != default_region)
-			{
+			region = Region[x * StageLengthAlongY + y + 1];
+			if (region != default_region) {
 				adjacent_regions.Add(region);
 			}
 			// LEFT
-			region = region_[x * stage_length_along_y_ + y - 1];
-			if (region != default_region)
-			{
+			region = Region[x * StageLengthAlongY + y - 1];
+			if (region != default_region) {
 				adjacent_regions.Add(region);
 			}
 
-			if (adjacent_regions.Num() < 2) // only proceed if the connector wall is adjacent to 2 or more regions
+			if (adjacent_regions.Num() < 2) { // only proceed if the connector wall is adjacent to 2 or more regions
 				continue;
+			}
 			connector_regions.Add(position, adjacent_regions);
 		}
 	}
@@ -299,11 +308,11 @@ void ADungeonGenerator::ConnectRegions()
 	TArray<FVector2D> connectors;
 	connector_regions.GetKeys(connectors);
 	UE_LOG(LogTemp, Warning, TEXT("connectors size: %d"), connectors.Num());
-	UE_LOG(LogTemp, Warning, TEXT("current region: %d"), current_region_);
+	UE_LOG(LogTemp, Warning, TEXT("current region: %d"), CurrentRegion);
 
 	TMap<int,int> merged;  // maps the original region index to the one it has been merged to
 	TSet<int> open_regions;  // regions that need to be merged including the last region
-	for (int i = 0; i <= current_region_; i++)
+	for (int i = 0; i <= CurrentRegion; i++)
 	{ // init them
 		merged.Add(i,i);
 		open_regions.Add(i);
@@ -312,11 +321,10 @@ void ADungeonGenerator::ConnectRegions()
 	while (open_regions.Num() > 1)  // we dont need to merge the last region
 	{
 		std::uniform_int_distribution<int> uni_int(0, connectors.Num() - 1);
-		auto random_element = uni_int(rng);
+		auto random_element = uni_int(RandomNumberGenerator);
 		FVector2D connector = connectors[random_element];
 
 		CarveJunction(connector);
-		// TODO FROM HERE
 
 		TArray<int> regions;
 		TArray<int> sources;
@@ -329,7 +337,7 @@ void ADungeonGenerator::ConnectRegions()
 		int destination = regions[0];
 		sources.RemoveAt(sources.Num() - 1);
 
-		for (int i = 0; i < current_region_; i++)
+		for (int i = 0; i < CurrentRegion; i++)
 		{
 			if (sources.Contains(merged[i]))
 			{
@@ -363,7 +371,7 @@ void ADungeonGenerator::ConnectRegions()
 			if (regions_set.Num() > 1)
 				continue;
 			// Maybe add this
-			// if (rng.oneIn(extraConnectorChance)) _addJunction(pos);
+			// if (RandomNumberGenerator.oneIn(extraConnectorChance)) _addJunction(pos);
 
 			to_remove.Add(positon);
 		}
@@ -380,25 +388,31 @@ void ADungeonGenerator::RemoveDeadEnds()
 	while (!b_done)
 	{
 		b_done = true;
-		for (int x = 1; x < stage_length_along_x_ - 1; x++)
+		for (int x = 1; x < StageLengthAlongX - 1; x++)
 		{ // iterate over x Axis excluding the outer walls of the stage
-			for (int y = 1; y < stage_length_along_y_ - 1; y++)
+			for (int y = 1; y < StageLengthAlongY - 1; y++)
 			{ // iterate over y Axis excluding the outer walls of the stage
-				if (GetTile(FVector2D(x, y)) == EBlockType::EWall)
+				if (GetTile(FVector2D(x, y)) == EBlockType::EWall) {
 					continue;
+				}
 				// if it only has one exit, it is a dead end
 				int exits = 0;
-				if (GetTile(FVector2D(x + 1, y)) != EBlockType::EWall)
+				if (GetTile(FVector2D(x + 1, y)) != EBlockType::EWall) {
 					exits++;
-				if (GetTile(FVector2D(x - 1, y)) != EBlockType::EWall)
+				}
+				if (GetTile(FVector2D(x - 1, y)) != EBlockType::EWall) {
 					exits++;
-				if (GetTile(FVector2D(x, y + 1)) != EBlockType::EWall)
+				}
+				if (GetTile(FVector2D(x, y + 1)) != EBlockType::EWall) {
 					exits++;
-				if (GetTile(FVector2D(x, y - 1)) != EBlockType::EWall)
+				}
+				if (GetTile(FVector2D(x, y - 1)) != EBlockType::EWall) {
 					exits++;
+				}
 
-				if (exits != 1)
+				if (exits != 1) {
 					continue;
+				}
 				b_done = false;
 				SetBlockAt(FVector2D(x, y), EBlockType::EWall);
 			}
@@ -409,20 +423,19 @@ void ADungeonGenerator::RemoveDeadEnds()
 void ADungeonGenerator::Carve(FVector2D position)
 {
 	SetBlockAt(position);
-	SetRegionAt(position, current_region_);
+	SetRegionAt(position, CurrentRegion);
 }
 void ADungeonGenerator::Carve(int i)
 {
 	SetBlockAt(i);
-	SetRegionAt(i, current_region_);
+	SetRegionAt(i, CurrentRegion);
 }
 
 /** returns if position + direction can be carved out */
 bool ADungeonGenerator::CanCarve(FVector2D position, FVector2D direction)
 {
 	// times 2 because walls require a position in the maze array
-	if (position.X + direction.X * 2 > stage_length_along_x_- 1 || position.X + direction.X * 2 < 1 || position.Y + direction.Y * 2 > stage_length_along_y_ - 1 || position.Y + direction.Y * 2 < 1)
-	{
+	if (position.X + direction.X * 2 > StageLengthAlongX- 1 || position.X + direction.X * 2 < 1 || position.Y + direction.Y * 2 > StageLengthAlongY - 1 || position.Y + direction.Y * 2 < 1) {
 		return false;
 	}
 	return (GetTile(position + direction * 2) == EBlockType::EWall);
@@ -442,58 +455,58 @@ void ADungeonGenerator::CarveJunction(FVector2D position)
 
 void ADungeonGenerator::SetBlockAt(FVector2D position, EBlockType type)
 {
-	int i = position.X * stage_length_along_y_ + position.Y;
-	stage_[i] = type;
+	int i = position.X * StageLengthAlongY + position.Y;
+	Stage[i] = type;
 }
 void ADungeonGenerator::SetBlockAt(int i, EBlockType type)
 {
-	stage_[i] = type;
+	Stage[i] = type;
 }
 
 void ADungeonGenerator::SetRegionAt(FVector2D position, int region)
 {
-	int i = position.X * stage_length_along_y_ + position.Y;
-	region_[i] = region;
+	int i = position.X * StageLengthAlongY + position.Y;
+	Region[i] = region;
 }
 void ADungeonGenerator::SetRegionAt(int i, int region)
 {
-	region_[i] = region;
+	Region[i] = region;
 }
 
 bool ADungeonGenerator::OneIn(int x)
 {
 	std::uniform_int_distribution<int> uni_int(1,x);
-	auto one_in_x = uni_int(rng);
+	auto one_in_x = uni_int(RandomNumberGenerator);
 	return one_in_x > 1 ? false : true;
 }
 
 void ADungeonGenerator::BeginDestroy()
 {
-	delete[] stage_;
-	delete[] region_;
-	stage_ = nullptr;
-	region_ = nullptr;
+	delete[] Stage;
+	delete[] Region;
+	Stage = nullptr;
+	Region = nullptr;
 	Super::BeginDestroy();
 }
 
 int ADungeonGenerator::GetStageSize() const
 {
-	return stage_size_;
+	return StageSize;
 }
 
 int ADungeonGenerator::GetStageLengthY() const
 {
-	return stage_length_along_y_;
+	return StageLengthAlongY;
 }
 
 int ADungeonGenerator::GetStageLengthX() const
 {
-	return stage_length_along_x_;
+	return StageLengthAlongX;
 }
 
 EBlockType ADungeonGenerator::GetTile(FVector2D position)
 {
-	int i = position.X * stage_length_along_y_ + position.Y;
-	return stage_[i];
+	int i = position.X * StageLengthAlongY + position.Y;
+	return Stage[i];
 }
 
