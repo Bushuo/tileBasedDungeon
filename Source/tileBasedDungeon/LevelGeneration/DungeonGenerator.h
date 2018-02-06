@@ -123,6 +123,8 @@ member functions
 	/** gives back a candidate room based on specified generation parameters */
 	FRoom GetCandidateRoom();
 
+	bool IsRoomOverlapping(const FRoom& Room) const;
+
 public:	
 	// Sets default values for this actor's properties
 	ADungeonGenerator();

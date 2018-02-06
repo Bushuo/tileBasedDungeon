@@ -88,21 +88,8 @@ void ADungeonGenerator::AddRooms()
 	{
 		FRoom new_room = GetCandidateRoom();
 
-		bool b_overlaps = false;
-
-		if (((new_room.GetStartPoint().X + new_room.GetSize().X) >= (StageLengthAlongX - 1)) ||
-			((new_room.GetStartPoint().Y + new_room.GetSize().Y) >= (StageLengthAlongY - 1))) // check if out of bounds
-			b_overlaps = true;
-
-		for (FRoom other : Rooms)
-		{ // search for overlapping rooms
-			if (new_room.DistanceToOther(other) <= 0.f)  // check if overlapping
-			{
-				b_overlaps = true;
-				break;
-			}
-		}
-		if (b_overlaps) {
+		bool bIsOverlapping = IsRoomOverlapping(new_room);
+		if (bIsOverlapping) {
 			continue; // overlapping room! -> try to place new room
 		}
 
@@ -141,6 +128,24 @@ FRoom ADungeonGenerator::GetCandidateRoom()
 	int RoomStartPointY = FMath::RandRange(1, (StageLengthAlongY - RoomSizeY) / 2) * 2 + 1;
 
 	return FRoom(RoomStartPointX, RoomStartPointY, RoomSizeX, RoomSizeY);
+}
+
+bool ADungeonGenerator::IsRoomOverlapping(const FRoom& Room) const
+{
+	bool bOverlapping = false;
+	if (((Room.GetStartPoint().X + Room.GetSize().X) >= (StageLengthAlongX - 1)) ||
+		((Room.GetStartPoint().Y + Room.GetSize().Y) >= (StageLengthAlongY - 1))) { // check if out of bounds
+		bOverlapping = true; //TODO maybe just make room smaller
+	}
+	else {
+		for (FRoom Other : Rooms) { // search for overlapping rooms
+			if (Room.DistanceToOther(Other) <= 0.f) {  // check if overlapping
+				bOverlapping = true;
+				break;
+			}
+		}
+	}
+	return bOverlapping;
 }
 
 void ADungeonGenerator::GrowMaze(FVector2D start)
