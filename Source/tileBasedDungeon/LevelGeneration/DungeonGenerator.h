@@ -125,6 +125,8 @@ member functions
 
 	bool IsRoomOverlapping(const FRoom& Room) const;
 
+	void CarveRoom(const FRoom & Room);
+
 public:	
 	// Sets default values for this actor's properties
 	ADungeonGenerator();

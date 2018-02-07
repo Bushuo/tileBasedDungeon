@@ -10,7 +10,7 @@ class AProjectile;
 USTRUCT(BlueprintType)
 struct FDungeonCharacterInput
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InputCharacter")

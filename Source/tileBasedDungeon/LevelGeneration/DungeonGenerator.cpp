@@ -86,23 +86,17 @@ void ADungeonGenerator::AddRooms()
 {
 	for (int i = 0; i < TryPlaceRoom; i++)
 	{
-		FRoom new_room = GetCandidateRoom();
+		FRoom RoomToAdd = GetCandidateRoom();
 
-		bool bIsOverlapping = IsRoomOverlapping(new_room);
+		bool bIsOverlapping = IsRoomOverlapping(RoomToAdd);
 		if (bIsOverlapping) {
 			continue; // overlapping room! -> try to place new room
 		}
 
-		Rooms.Push(new_room);
+		Rooms.Push(RoomToAdd);
 		CurrentRegion++; // each room should be a new region
 
-		for (int pos_x = new_room.GetStartPoint().X; pos_x < (new_room.GetStartPoint().X + new_room.GetSize().X); pos_x++)
-		{
-			for (int pos_y = new_room.GetStartPoint().Y; pos_y < (new_room.GetStartPoint().Y + new_room.GetSize().Y); pos_y++)
-			{
-				Carve(FVector2D(pos_x, pos_y));
-			}
-		}
+		CarveRoom(RoomToAdd);
 	}
 }
 
@@ -147,6 +141,8 @@ bool ADungeonGenerator::IsRoomOverlapping(const FRoom& Room) const
 	}
 	return bOverlapping;
 }
+
+
 
 void ADungeonGenerator::GrowMaze(FVector2D start)
 {
@@ -464,6 +460,15 @@ void ADungeonGenerator::CarveJunction(FVector2D position)
 	else
 	{
 		SetBlockAt(position, EBlockType::EDoor_Closed);
+	}
+}
+
+void ADungeonGenerator::CarveRoom(const FRoom& Room)
+{
+	for (int CarvePosX = Room.GetStartPoint().X; CarvePosX < (Room.GetStartPoint().X + Room.GetSize().X); CarvePosX++) {
+		for (int CarvePosY = Room.GetStartPoint().Y; CarvePosY < (Room.GetStartPoint().Y + Room.GetSize().Y); CarvePosY++) {
+			Carve(FVector2D(CarvePosX, CarvePosY));
+		}
 	}
 }
 
