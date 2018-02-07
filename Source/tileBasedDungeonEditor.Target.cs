@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 using UnrealBuildTool;
 using System.Collections.Generic;
@@ -11,18 +11,4 @@ public class tileBasedDungeonEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		ExtraModuleNames.Add("tileBasedDungeon");
 	}
-
-	//
-	// TargetRules interface.
-	//
-
-	// deprecated with 4_18
-	//public override void SetupBinaries(
-	//	TargetInfo Target,
-	//	ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-	//	ref List<string> OutExtraModuleNames
-	//	)
-	//{
-	//	OutExtraModuleNames.AddRange( new string[] { "tileBasedDungeon" } );
-	//}
 }

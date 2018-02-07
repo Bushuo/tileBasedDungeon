@@ -12,8 +12,8 @@ ADungeonGenerator::ADungeonGenerator()
 
 	// set default level size
 	TILE_SIZE = 100;
-	StageLengthAlongY = 51;
-	StageLengthAlongX = 51;
+	StageLengthAlongY = 151;
+	StageLengthAlongX = 31 ;
 
 	CurrentRegion = -1;
 	TryPlaceRoom = 1;
@@ -84,6 +84,7 @@ void ADungeonGenerator::InitializeStage()
 
 void ADungeonGenerator::AddRooms()
 {
+	// TODO enhance to spawn small rooms at edge of stage and larger rooms towards the middle
 	for (int i = 0; i < TryPlaceRoom; i++)
 	{
 		FRoom RoomToAdd = GetCandidateRoom();
@@ -157,19 +158,16 @@ void ADungeonGenerator::GrowMaze(FVector2D StartPosition)
 		TArray<FVector2D> UncarvedCells;
 		AddPossibleCellsInCardinalDirections(UncarvedCells, Cell);
 
-		// if cell(s) got added get back a random one and carve
-		if (UncarvedCells.Num() > 0)
+		if (UncarvedCells.Num() > 0) // if cell(s) got added get back a random one and carve
 		{
 			FVector2D DirectionToCarve = GetRandomCarveDirection(UncarvedCells, LastDirection);
 			
 			Carve(Cell + DirectionToCarve);
 			Carve(Cell + DirectionToCarve * 2);
-
 			MazeCells.Add(Cell + DirectionToCarve * 2);
 			LastDirection = DirectionToCarve;
 		}
-		else
-		{
+		else { // otherwise discard the the top cell 
 			MazeCells.Pop();
 			LastDirection = FVector2D::ZeroVector;
 		}
@@ -214,6 +212,8 @@ FVector2D ADungeonGenerator::GetRandomCarveDirection(const TArray<FVector2D>& Un
 	}
 }
 
+
+
 void ADungeonGenerator::DrawRegionColors()
 {
 	TArray<FColor> colors;
@@ -242,51 +242,30 @@ void ADungeonGenerator::DrawRegionColors()
 
 void ADungeonGenerator::ConnectRegions()
 {
-	TMap<FVector2D, TSet<int>> connector_regions;
+	TMap<FVector2D, TSet<int>> RegionConnectors;
 	
 	for (int x = 1; x < StageLengthAlongX - 1; x++)
 	{ // iterate over x Axis excluding the outer walls of the stage
 		for (int y = 1; y < StageLengthAlongY - 1; y++)
 		{ // iterate over y Axis excluding the outer walls of the stage
 			TSet<int> adjacent_regions; // adjacent region identifiers of current position
-			int default_region = -1;
 			FVector2D position(x,y);
 			if (GetTile(position) != EBlockType::EWall) 
 				continue;  // has to be a wall > which implies it is not already part of a region
-			
-			// check cardinal directions
-			
-			// UP
 			int region = Region[(x + 1) * StageLengthAlongY + y];  // region identifier of adjacent position
-			if (region != default_region) {
-				adjacent_regions.Add(region);
-			}
-			// DOWN
-			region = Region[(x - 1) * StageLengthAlongY + y];
-			if (region != default_region) {
-				adjacent_regions.Add(region);
-			}
-			// RIGHT
-			region = Region[x * StageLengthAlongY + y + 1];
-			if (region != default_region) {
-				adjacent_regions.Add(region);
-			}
-			// LEFT
-			region = Region[x * StageLengthAlongY + y - 1];
-			if (region != default_region) {
-				adjacent_regions.Add(region);
-			}
+			
+			AddRegionsInCardinalDirections(adjacent_regions, region, x, y);
 
 			if (adjacent_regions.Num() < 2) { // only proceed if the connector wall is adjacent to 2 or more regions
 				continue;
 			}
-			connector_regions.Add(position, adjacent_regions);
+			RegionConnectors.Add(position, adjacent_regions);
 		}
 	}
 
 	// get list of connectors
 	TArray<FVector2D> connectors;
-	connector_regions.GetKeys(connectors);
+	RegionConnectors.GetKeys(connectors);
 	UE_LOG(LogTemp, Warning, TEXT("connectors size: %d"), connectors.Num());
 	UE_LOG(LogTemp, Warning, TEXT("current region: %d"), CurrentRegion);
 
@@ -308,7 +287,7 @@ void ADungeonGenerator::ConnectRegions()
 
 		TArray<int> regions;
 		TArray<int> sources;
-		for (auto elem : connector_regions[connector])
+		for (auto elem : RegionConnectors[connector])
 		{
 			regions.Add(merged[elem]);
 			sources.Add(merged[elem]);
@@ -343,7 +322,7 @@ void ADungeonGenerator::ConnectRegions()
 				continue;
 			}
 			TSet<int> regions_set;
-			for (auto region_id : connector_regions[positon])
+			for (auto region_id : RegionConnectors[positon])
 			{
 				regions_set.Add(merged[region_id]);
 			}
@@ -360,6 +339,33 @@ void ADungeonGenerator::ConnectRegions()
 			connectors.Remove(element_to_remove);
 		}
 	}
+}
+
+void ADungeonGenerator::AddRegionsInCardinalDirections(TSet<int>& adjacent_regions, int region, int x, int y)
+{
+	// check cardinal directions
+
+	// UP
+	
+	if (region != DefaultRegion) {
+		adjacent_regions.Add(region);
+	}
+	// DOWN
+	region = Region[(x - 1) * StageLengthAlongY + y];
+	if (region != DefaultRegion) {
+		adjacent_regions.Add(region);
+	}
+	// RIGHT
+	region = Region[x * StageLengthAlongY + y + 1];
+	if (region != DefaultRegion) {
+		adjacent_regions.Add(region);
+	}
+	// LEFT
+	region = Region[x * StageLengthAlongY + y - 1];
+	if (region != DefaultRegion) {
+		adjacent_regions.Add(region);
+	}
+
 }
 
 void ADungeonGenerator::RemoveDeadEnds()
@@ -479,8 +485,6 @@ void ADungeonGenerator::CarveRoom(const FRoom& Room)
 		}
 	}
 }
-
-
 
 void ADungeonGenerator::SetBlockAt(FVector2D position, EBlockType type)
 {

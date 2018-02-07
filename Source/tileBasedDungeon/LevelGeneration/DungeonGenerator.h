@@ -46,6 +46,7 @@ private:
 
 
 	int32 CurrentRegion;
+	int32 DefaultRegion = -1;
 
 	std::random_device RandomDevice;
 	std::mt19937 RandomNumberGenerator;
@@ -121,6 +122,8 @@ member functions
 	void AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& StartingCell);
 
 	FVector2D GetRandomCarveDirection(const TArray<FVector2D>& UncarvedCells, const FVector2D& LastDirection);
+
+	void AddRegionsInCardinalDirections(TSet<int>& AdjecentRegions, int CurrentRegion, int PosX, int PosY);
 
 public:	
 	// Sets default values for this actor's properties

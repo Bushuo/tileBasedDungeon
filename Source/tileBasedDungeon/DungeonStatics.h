@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 #pragma once
 
@@ -41,3 +41,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Math|Rotator", meta = (Keywords = "rotation rotate"))
 	static bool FindLookAtAngle2D(const FVector2D& Start, const FVector2D& Target, float& Angle);
 };
+
+
+/*TODO Idea List
+* Generation Algorithm: small rooms on stage edges bigger rooms towards the middle
+* Implementation Order:
+* enhanced generation algorithm
+* preset for 2-3 rooms (manager class)
+* player character
+* inventory
+* item
+* weapon pickup
+* 4 basic weapons
+* 2 minions
+* 2 bosses
+*/
