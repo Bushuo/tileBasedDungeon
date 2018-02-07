@@ -142,67 +142,71 @@ bool ADungeonGenerator::IsRoomOverlapping(const FRoom& Room) const
 	return bOverlapping;
 }
 
-
-
-void ADungeonGenerator::GrowMaze(FVector2D start)
+// takes an odd wall tile as start position to grow a maze from it
+void ADungeonGenerator::GrowMaze(FVector2D StartPosition)
 {
-	TArray<FVector2D> cells;
-	FVector2D last_direction;
+	TArray<FVector2D> MazeCells;
+	FVector2D LastDirection;
 
-	CurrentRegion++;
-	Carve(start);
-	cells.Add(start);
-	while (cells.Num() > 0)
+	CurrentRegion++; // make the maze a new region
+	Carve(StartPosition);
+	MazeCells.Add(StartPosition);
+	while (MazeCells.Num() > 0)
 	{
-		FVector2D cell = cells.Top();
-		cell = cells.Last(); 
-		TArray<FVector2D> unmade_cells;
+		FVector2D Cell = MazeCells.Top();
+		TArray<FVector2D> UncarvedCells;
 
-		// check all cardinal directions
-		if (CanCarve(cell, FVector2D(0, 1))) {
-			unmade_cells.Add(FVector2D(0, 1));
-		}
-		if (CanCarve(cell, FVector2D(0, -1))) {
-			unmade_cells.Add(FVector2D(0, -1));
-		}
-		if (CanCarve(cell, FVector2D(1, 0))) {
-			unmade_cells.Add(FVector2D(1, 0));
-		}
-		if (CanCarve(cell, FVector2D(-1, 0))) {
-			unmade_cells.Add(FVector2D(-1, 0));
-		}
+		AddPossibleCellsInCardinalDirections(UncarvedCells, Cell);
 
 		// carve in a random direction
-		if (unmade_cells.Num() > 0)
+		if (UncarvedCells.Num() > 0)
 		{
 			FVector2D direction;
 			std::uniform_real_distribution<float> uni_float(0.f, 1.f);
 			float random_percentage = uni_float(RandomNumberGenerator);
-			if (unmade_cells.Contains(last_direction) && (random_percentage > WindingPercentage))
+			if (UncarvedCells.Contains(LastDirection) && (random_percentage > WindingPercentage))
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("hit random percent = %f"), random_percentage);
-				direction = last_direction;
+				direction = LastDirection;
 			}
 			else
 			{
-				std::uniform_int_distribution<int> uni_int(0, unmade_cells.Num() - 1);
+				std::uniform_int_distribution<int> uni_int(0, UncarvedCells.Num() - 1);
 				auto random_direction = uni_int(RandomNumberGenerator);
-				direction = unmade_cells[random_direction];
+				direction = UncarvedCells[random_direction];
 				//UE_LOG(LogTemp, Warning, TEXT("random int = %d"), random_direction);
 				//UE_LOG(LogTemp, Warning, TEXT("carved %d | %d"), cell.X + unmade_cells[random_direction].X, cell.Y + unmade_cells[random_direction].Y);
 			}
 			
-			Carve(cell + direction);
-			Carve(cell + direction * 2);
+			Carve(Cell + direction);
+			Carve(Cell + direction * 2);
 
-			cells.Add(cell + direction * 2);
-			last_direction = direction;
+			MazeCells.Add(Cell + direction * 2);
+			LastDirection = direction;
 		}
 		else
 		{
-			cells.Pop();
-			last_direction = FVector2D::ZeroVector;
+			MazeCells.Pop();
+			LastDirection = FVector2D::ZeroVector;
 		}
+	}
+}
+
+// checks all cardinal directions and adds the tiles to array if possbile
+void ADungeonGenerator::AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& Cell)
+{
+	// check all cardinal directions for possible path
+	if (CanCarve(Cell, FVector2D(0, 1))) {
+		OutUncarvedCells.Add(FVector2D(0, 1));
+	}
+	if (CanCarve(Cell, FVector2D(0, -1))) {
+		OutUncarvedCells.Add(FVector2D(0, -1));
+	}
+	if (CanCarve(Cell, FVector2D(1, 0))) {
+		OutUncarvedCells.Add(FVector2D(1, 0));
+	}
+	if (CanCarve(Cell, FVector2D(-1, 0))) {
+		OutUncarvedCells.Add(FVector2D(-1, 0));
 	}
 }
 
@@ -471,6 +475,8 @@ void ADungeonGenerator::CarveRoom(const FRoom& Room)
 		}
 	}
 }
+
+
 
 void ADungeonGenerator::SetBlockAt(FVector2D position, EBlockType type)
 {

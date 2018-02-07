@@ -118,6 +118,8 @@ member functions
 
 	void CarveRoom(const FRoom & Room);
 
+	void AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& Cell);
+
 public:	
 	// Sets default values for this actor's properties
 	ADungeonGenerator();
