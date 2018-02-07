@@ -2,21 +2,12 @@
 
 #pragma once
 #include "GameFramework/Actor.h"
-#include <vector>
+#include "DungeonStatics.h"
 #include <random>
 #include "Room.h"
 #include "DungeonGenerator.generated.h"
 
-/**
-* This enum represents the different values an array element can be inside the level array representation
-*/
-UENUM()
-enum class EBlockType {
-	EFloor,
-	EWall,
-	EDoor_Closed,
-	EDoor_Open
-};
+
 
 /**
 * This class generates a level based on a 2 dimensional array

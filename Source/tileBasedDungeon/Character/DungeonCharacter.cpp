@@ -147,7 +147,7 @@ void ADungeonCharacter::Tick( float DeltaTime )
 }
 
 // Called to bind functionality to input
-void ADungeonCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void ADungeonCharacter::SetupPlayerInputComponent(UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 

@@ -7,6 +7,25 @@
 #include "DungeonStatics.generated.h"
 
 /**
+* This enum represents the different values an array element can be inside the level array representation
+*/
+UENUM()
+enum class EBlockType {
+	EFloor,
+	EWall,
+	EDoor_Closed,
+	EDoor_Open
+};
+
+/**
+* This enum represents the different room presets that can be requested from the manager class
+* naming convention ENameOfRoom3by5SpecialTag (unordered set) room has to be rotateable when spawned
+*/
+UENUM()
+enum class ERoomPreset {
+	ESpawnRoom2by2
+};
+/**
  * 
  */
 UCLASS()

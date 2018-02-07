@@ -1,8 +1,8 @@
 // Copyright 2017-2018, Paul Buschmann, All rights reserved.
 
 #pragma once
-
 #include "CoreMinimal.h"
+#include "DungeonStatics.h"
 /**
 * for internal use in FRoom only
 */
@@ -35,9 +35,15 @@ public:
 	
 	int32 DistanceToOther(const FRoom& Other) const;
 
+	/** always call this before using a room
+	* gets the layout preset from the manager class
+	*/
+	void Initialize();
+
 private:
 	FIntVector2D Start;
 	FIntVector2D Size;
+	EBlockType* RoomLayout; //TODO implement calling for a preset from a manager class on creation
 
 	int32 CalculateVerticalDistance(const FRoom& Other) const;
 	int32 CalculateHorizontalDistance(const FRoom& Other) const;

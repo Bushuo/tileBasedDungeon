@@ -8,6 +8,7 @@ FRoom::FRoom(FIntVector Start, FIntVector Size)
 	this->Start.Y = Start.Y;
 	this->Size.X = Size.X;
 	this->Size.Y = Size.Y;
+	RoomLayout = new EBlockType[Size.X * Size.Y];
 }
 
 FRoom::FRoom(FIntVector Start, int32 Size) : FRoom(Start, FIntVector(Size))
@@ -19,15 +20,10 @@ FRoom::FRoom(int32 StartPointX, int32 StartPointY, int32 SizeX, int32 SizeY) : F
 }
 
 FIntVector FRoom::GetStartPoint() const { return FIntVector(Start.X, Start.Y, 0); }
-
 FIntVector FRoom::GetSize() const { return FIntVector(Size.X, Size.Y, 0); }
-
 int32 FRoom::GetTop() const { return FMath::Min(Start.X, Start.X + Size.X); }
-
 int32 FRoom::GetBottom() const { return FMath::Max(Start.X, Start.X + Size.X); }
-
 int32 FRoom::GetLeft() const { return FMath::Min(Start.Y, Start.Y + Size.Y); }
-
 int32 FRoom::GetRight() const { return FMath::Max(Start.Y, Start.Y + Size.Y); }
 
 /** returns the minimum length a corridor based on a grid would have to be to go from this to other
@@ -48,6 +44,11 @@ int32 FRoom::DistanceToOther(const FRoom& Other) const
 			return VerticalDistance;
 	}
 	return HorizontalDistance + VerticalDistance;
+}
+
+void FRoom::Initialize()
+{
+	//TODO call manager method to fill the layout array with preset for room interior
 }
 
 // returns -1 if overlaping vertically with the other room
