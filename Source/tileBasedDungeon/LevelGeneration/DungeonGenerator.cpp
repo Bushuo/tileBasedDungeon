@@ -155,34 +155,18 @@ void ADungeonGenerator::GrowMaze(FVector2D StartPosition)
 	{
 		FVector2D Cell = MazeCells.Top();
 		TArray<FVector2D> UncarvedCells;
-
 		AddPossibleCellsInCardinalDirections(UncarvedCells, Cell);
 
-		// carve in a random direction
+		// if cell(s) got added get back a random one and carve
 		if (UncarvedCells.Num() > 0)
 		{
-			FVector2D direction;
-			std::uniform_real_distribution<float> uni_float(0.f, 1.f);
-			float random_percentage = uni_float(RandomNumberGenerator);
-			if (UncarvedCells.Contains(LastDirection) && (random_percentage > WindingPercentage))
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("hit random percent = %f"), random_percentage);
-				direction = LastDirection;
-			}
-			else
-			{
-				std::uniform_int_distribution<int> uni_int(0, UncarvedCells.Num() - 1);
-				auto random_direction = uni_int(RandomNumberGenerator);
-				direction = UncarvedCells[random_direction];
-				//UE_LOG(LogTemp, Warning, TEXT("random int = %d"), random_direction);
-				//UE_LOG(LogTemp, Warning, TEXT("carved %d | %d"), cell.X + unmade_cells[random_direction].X, cell.Y + unmade_cells[random_direction].Y);
-			}
+			FVector2D DirectionToCarve = GetRandomCarveDirection(UncarvedCells, LastDirection);
 			
-			Carve(Cell + direction);
-			Carve(Cell + direction * 2);
+			Carve(Cell + DirectionToCarve);
+			Carve(Cell + DirectionToCarve * 2);
 
-			MazeCells.Add(Cell + direction * 2);
-			LastDirection = direction;
+			MazeCells.Add(Cell + DirectionToCarve * 2);
+			LastDirection = DirectionToCarve;
 		}
 		else
 		{
@@ -193,20 +177,40 @@ void ADungeonGenerator::GrowMaze(FVector2D StartPosition)
 }
 
 // checks all cardinal directions and adds the tiles to array if possbile
-void ADungeonGenerator::AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& Cell)
+void ADungeonGenerator::AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& StartingCell)
 {
 	// check all cardinal directions for possible path
-	if (CanCarve(Cell, FVector2D(0, 1))) {
+	if (CanCarve(StartingCell, FVector2D(0, 1))) {
 		OutUncarvedCells.Add(FVector2D(0, 1));
 	}
-	if (CanCarve(Cell, FVector2D(0, -1))) {
+	if (CanCarve(StartingCell, FVector2D(0, -1))) {
 		OutUncarvedCells.Add(FVector2D(0, -1));
 	}
-	if (CanCarve(Cell, FVector2D(1, 0))) {
+	if (CanCarve(StartingCell, FVector2D(1, 0))) {
 		OutUncarvedCells.Add(FVector2D(1, 0));
 	}
-	if (CanCarve(Cell, FVector2D(-1, 0))) {
+	if (CanCarve(StartingCell, FVector2D(-1, 0))) {
 		OutUncarvedCells.Add(FVector2D(-1, 0));
+	}
+}
+
+// expects a non empty TArray to get the direction from
+FVector2D ADungeonGenerator::GetRandomCarveDirection(const TArray<FVector2D>& UncarvedCells,const FVector2D& LastDirection)
+{
+	FVector2D DirectionToCarve = FVector2D::ZeroVector;
+	
+	/// get float percentage
+	std::uniform_real_distribution<float> UniformFloatRange(0.f, 1.f);
+	float RandomPercentage = UniformFloatRange(RandomNumberGenerator); 
+	// if the chance is right and the last direction can be carved do it
+	if (UncarvedCells.Contains(LastDirection) && (RandomPercentage > WindingPercentage)) { 
+		return DirectionToCarve = LastDirection;
+	}
+	else { // otherwise get a random direction to carve to
+		int NumberOfPossibleDirections = UncarvedCells.Num() - 1;
+		std::uniform_int_distribution<int> UniformIntRange(0, NumberOfPossibleDirections);
+		int RandomDirection = UniformIntRange(RandomNumberGenerator);
+		return DirectionToCarve = UncarvedCells[RandomDirection];
 	}
 }
 

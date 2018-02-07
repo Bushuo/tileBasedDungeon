@@ -118,7 +118,9 @@ member functions
 
 	void CarveRoom(const FRoom & Room);
 
-	void AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& Cell);
+	void AddPossibleCellsInCardinalDirections(TArray<FVector2D>& OutUncarvedCells, const FVector2D& StartingCell);
+
+	FVector2D GetRandomCarveDirection(const TArray<FVector2D>& UncarvedCells, const FVector2D& LastDirection);
 
 public:	
 	// Sets default values for this actor's properties
